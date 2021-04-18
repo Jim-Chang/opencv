@@ -31,7 +31,7 @@ class Webcam:
 
 
 def main():
-    cam = Webcam('http://192.168.68.58:8081/', FaceDetector(), True)
+    cam = Webcam('http://192.168.68.58:8081/', FaceDetector(debug=True), True)
     cam.run()
 
 

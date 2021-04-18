@@ -65,6 +65,13 @@ class FaceDetector:
 
         return self._face_encodes
 
+    @property
+    def face_names(self):
+        if not hasattr(self, '_face_names'):
+            self._face_names = [f.name for f in self.faces]
+
+        return self._face_names
+
     def detect(self, img) -> List[MatchResult]:
         results = []
 
@@ -76,8 +83,8 @@ class FaceDetector:
             face_dis = face_recognition.face_distance(self.face_encodes, cur_face_encode)
 
             if self.debug:
-                print('matches', matches)
-                print('face_dis', face_dis)
+                print('matches', list(zip(matches, self.face_names)))
+                print('face_dis', list(zip(face_dis, self.face_names)))
 
             match_index = np.argmin(face_dis)
             if matches[match_index]:
@@ -92,7 +99,7 @@ class FaceDetector:
 
             else:
                 results.append(MatchResult(
-                    name='',
+                    name='unknown',
                     location=cur_face_loc,
                     unknown=True
                 ))

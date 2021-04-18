@@ -7,7 +7,7 @@ TEST_IMG_FOLDER = 'test_images/'
 
 def main(file_name):
     test_img = load_img_2_rgb(TEST_IMG_FOLDER + file_name)
-    detector = FaceDetector()
+    detector = FaceDetector(debug=True)
     results = detector.detect(test_img)
     for r in results:
         draw_location(test_img, r)
