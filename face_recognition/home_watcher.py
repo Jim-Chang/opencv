@@ -2,11 +2,12 @@ from collections import defaultdict
 import time
 from datetime import datetime, timedelta
 
+import os
+
 from webcam import Webcam
 from detector import FaceDetector
 
-# CAM_URL = 'http://localhost:8081'
-CAM_URL = 'http://192.168.68.58:8081/'
+CAM_URL = os.environ.get('CAM_URL', 'http://192.168.68.58:8081/')
 
 INACTIVE_SECS = 30
 
