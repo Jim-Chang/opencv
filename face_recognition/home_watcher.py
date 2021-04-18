@@ -19,7 +19,7 @@ def send_notify_if_detect(results):
 
 def write_to_log(results):
     if results:
-        with open('detect_log.csv', 'a') as f:
+        with open('log/detect_log.csv', 'a') as f:
             now = datetime.now()
 
             for result in results:
@@ -27,7 +27,7 @@ def write_to_log(results):
                 # 出現後 30 秒為不反應期
                 if last_detect_at is None or now - last_detect_at > timedelta(seconds=INACTIVE_SECS):
                     last_detect_history[result.name] = now
-                    text = f'{result.name}, {now.strftime("%Y/%m/%d %H:%M:%S")}'
+                    text = f'{result.name}, {now.strftime("%Y/%m/%d %H:%M:%S")}\n'
                     f.write(text)
                     print(f'write to log: {text}')
                 
