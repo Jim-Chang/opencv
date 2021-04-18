@@ -49,7 +49,8 @@ def draw_location(img, match_result, scale=1):
 
 class FaceDetector:
 
-    def __init__(self):
+    def __init__(self, debug=False):
+        self.debug = debug
         print('loading known face encodes...')
 
         _t = time.time()
@@ -74,12 +75,14 @@ class FaceDetector:
             matches = face_recognition.compare_faces(self.face_encodes, cur_face_encode)
             face_dis = face_recognition.face_distance(self.face_encodes, cur_face_encode)
 
-            # print('matches', matches)
-            # print('face_dis', face_dis)
+            if self.debug:
+                print('matches', matches)
+                print('face_dis', face_dis)
 
             match_index = np.argmin(face_dis)
             if matches[match_index]:
-                print('match name:', self.faces[match_index].name)
+                if self.debug:
+                    print('match name:', self.faces[match_index].name)
 
                 results.append(MatchResult(
                     name=self.faces[match_index].name,
