@@ -12,6 +12,7 @@ RUN apt-get update && \
 	# Install lib for opencv
 	apt-get install -y cmake libgl1-mesa-glx libglib2.0-dev libsm6 libxrender1 libxext6 libice6 libxt6 libfontconfig1 libcups2 && \
 	# Install python lib
+	pip install --upgrade pip setuptools wheel && \
 	pip install --trusted-host pypi.python.org -r requirements.txt && \
 	# Cleanup
 	apt-get purge --yes build-essential libpq-dev python3-dev && \
