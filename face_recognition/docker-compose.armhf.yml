@@ -1,0 +1,5 @@
+services:
+	home-watcher:
+	  build:
+		context: .
+		dockerfile: Dockerfile.armhf
