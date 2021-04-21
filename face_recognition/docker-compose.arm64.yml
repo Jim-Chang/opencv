@@ -1,0 +1,22 @@
+version: '2.3'
+services:
+  home-watcher:
+    image: dorajim15/face-recognition-arm64:1.3.0
+    container_name: home-watcher
+    restart: always
+	entrypoint: "python /app/home_watcher.py"
+    networks:
+      - home-watcher
+    mem_limit: 500M
+    volumes:
+      - ./:/app
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  
+networks:
+  home-watcher:
+    name: home-watcher-network
+    driver: bridge
