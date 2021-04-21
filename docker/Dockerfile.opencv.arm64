@@ -1,0 +1,11 @@
+FROM python:3.8.9-buster 
+
+RUN apt-get update && \
+	apt-get upgrade -yqq && \
+	apt-get install -y build-essential libpq-dev python3-dev && \
+	# Install lib for opencv
+	apt-get install -y cmake libgl1-mesa-glx libglib2.0-dev libsm6 libxrender1 libxext6 libice6 libxt6 libfontconfig1 libcups2 && \
+	# Install python lib
+	pip install --upgrade pip setuptools wheel && \
+	pip install numpy==1.20.2 && \
+	pip install opencv-python==4.5.1.48

@@ -1,0 +1,9 @@
+FROM dorajim15/opencv-arm64:4.5.1
+
+RUN pip install face-recognition && \
+	# Cleanup
+	apt-get purge --yes build-essential libpq-dev python3-dev && \
+	apt-get autoclean -yqq && \
+	apt-get autoremove -yqq && \
+	apt-get clean -yqq && \
+	rm -rf /var/cache/apt/archives/* /var/cache/apt/*.bin /var/lib/apt/lists/*
