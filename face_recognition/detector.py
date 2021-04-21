@@ -5,7 +5,7 @@ import face_recognition
 import os
 import time
 
-IMAGE_FOLDER = 'images/'
+IMAGE_FOLDER = 'images'
 RED_COLOR = (200, 58, 76)
 WHITE_COLOR = (255, 255, 255)
 
@@ -29,7 +29,7 @@ def load_faces() -> List[Face]:
     file_list = os.listdir(IMAGE_FOLDER)
 
     for img_file in file_list:
-        img = load_img_2_rgb(f'{IMAGE_FOLDER}{img_file}')
+        img = load_img_2_rgb(f'{IMAGE_FOLDER}/{img_file}')
         encode = face_recognition.face_encodings(img)[0]
 
         faces.append(Face(
