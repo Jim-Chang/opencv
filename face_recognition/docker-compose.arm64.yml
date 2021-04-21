@@ -4,7 +4,7 @@ services:
     image: dorajim15/face-recognition-arm64:1.3.0
     container_name: home-watcher
     restart: always
-	working_dir: /app
+    working_dir: /app
     entrypoint: "python /app/home_watcher.py"
     networks:
       - home-watcher
