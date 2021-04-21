@@ -1,5 +1,6 @@
+version: '2.3'
 services:
-	home-watcher:
-	  build:
-		context: .
-		dockerfile: Dockerfile.armhf
+  home-watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile.armhf

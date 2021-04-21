@@ -1,4 +1,4 @@
-FROM dorajim15/face-recognition:1.3.0-v1
+FROM dorajim15/face-recognition-armhf:1.3.0
 
 RUN groupadd -r watcher
 RUN useradd -r -u 1010 -g watcher watcher
