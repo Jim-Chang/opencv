@@ -44,7 +44,8 @@ def main():
     webcam = Webcam(
         url=CAM_URL,
         detector=FaceDetector(),
-        event_func=detect_callback
+        event_func=detect_callback,
+        resize_factor=0.5
     )
     webcam.run()
 
