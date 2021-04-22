@@ -12,7 +12,7 @@ def main():
         url=0,
         detector=FaceDetector(),
         show_window=True,
-        resize_factor=0.1
+        resize_factor=0.25
     )
     webcam.run()
 
