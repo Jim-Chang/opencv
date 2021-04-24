@@ -2,11 +2,17 @@ FROM python:3.8.9-buster
 
 RUN apt-get update && \
 	apt-get upgrade -yqq && \
-	apt-get install -y build-essential libpq-dev python3-dev && \
-	# Install lib for opencv
-	apt-get install -y cmake libgl1-mesa-glx libglib2.0-dev libsm6 libxrender1 libxext6 libice6 libxt6 libfontconfig1 libcups2 && \
-	# Install python lib
-	pip install --upgrade pip setuptools wheel && \
-	pip install Cython scikit-build && \
-	pip install numpy==1.20.2 --no-use-pep517 && \
-	pip install opencv-python==4.5.1.48 --no-use-pep517
+	apt-get install -y build-essential libpq-dev python3-dev
+
+# Install lib for opencv
+RUN apt-get install -y cmake libgl1-mesa-glx libglib2.0-dev libsm6 libxrender1 libxext6 libice6 libxt6 libfontconfig1 libcups2 && \
+	apt-get install -y libjpeg-dev libtiff5-dev libpng-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev && \
+	apt-get install -y libxvidcore-dev libx264-dev libatlas-base-dev gfortran
+
+# Install python lib
+RUN pip install --upgrade pip setuptools wheel && \
+	pip install Cython scikit-build
+
+# Install opencv
+RUN pip install numpy==1.20.2 --no-use-pep517
+RUN pip install opencv-contrib-python==4.4.0.46
