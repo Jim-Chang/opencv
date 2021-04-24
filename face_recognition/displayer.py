@@ -1,9 +1,10 @@
 import cv2
 
-RED_COLOR = (200, 58, 76)
+# BGR
+RED_COLOR = (76, 58, 200)
 WHITE_COLOR = (255, 255, 255)
 
-# img => RGB
+# img => BGR
 def draw_locations(img, match_results, scale=1):
     for match_result in match_results:
         y1, x2, y2, x1 = match_result.location
@@ -14,5 +15,5 @@ def draw_locations(img, match_results, scale=1):
 
 # img => RGB
 def show_to_window(img, window='cam', wait=1):
-    cv2.imshow(window, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    cv2.imshow(window, img)
     cv2.waitKey(wait)

@@ -23,7 +23,7 @@ class Watcher:
             img = self._read_img()
             small_img = self._resize_if_need(img)
 
-            results = self.detector.detect(small_img)
+            results = self.detector.detect(cv2.cvtColor(small_img, cv2.COLOR_BGR2RGB))
 
             if self.draw_locations:
                 draw_locations(img, results, scale=int(1 / self.resize_factor) if self.resize_factor else 1)
@@ -39,7 +39,7 @@ class Watcher:
         while success is False:
             success, img = self.cap.read()
             if success:
-                return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                return img
             else:
                 logging.info('Load image from source fail, wait 1 sec and retry.')
                 sleep(1)

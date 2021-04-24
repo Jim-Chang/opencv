@@ -32,7 +32,7 @@ def load_faces() -> List[Face]:
         encode = face_recognition.face_encodings(img)[0]
 
         faces.append(Face(
-            name=img_file.split('.')[0],
+            name=img_file.split('.')[0].split('_')[0],   # Jim_1.jpg, Jim_2.jpg...
             encode=encode,
         ))
 
@@ -64,6 +64,7 @@ class FaceDetector:
 
         return self._face_names
 
+    # img: RGB
     def detect(self, img) -> List[MatchResult]:
         results = []
 

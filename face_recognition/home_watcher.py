@@ -5,7 +5,7 @@ import os
 
 from watcher import Watcher
 from detector import FaceDetector
-from reactor import mk_log_dir_if_need, write_to_log, send_notify_if_detect, save_img
+from reactor import mk_log_dir_if_need, write_to_log, send_notify_if_detect, save_img, disable_motion_detector_if_need
 from log import logging
 
 CAM_URL = os.environ.get('CAM_URL', 'http://192.168.68.58:8081')
@@ -38,7 +38,8 @@ def detect_callback(results, img):
 
     save_img(filtered_result, now, img)
     write_to_log(filtered_result, now)
-    send_notify_if_detect(filtered_result)
+    send_notify_if_detect(filtered_result, img)
+    disable_motion_detector_if_need(filtered_result)
 
 def main():
     mk_log_dir_if_need()
