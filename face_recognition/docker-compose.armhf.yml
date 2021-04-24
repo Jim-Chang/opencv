@@ -1,0 +1,24 @@
+version: '2.3'
+services:
+  home-watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile.armhf
+    image: home-watcher:latest
+    container_name: home-watcher
+    restart: always
+    networks:
+      - home-watcher
+    mem_limit: 500M
+    volumes:
+      - ./:/app
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  
+networks:
+  home-watcher:
+    name: home-watcher-network
+    driver: bridge
