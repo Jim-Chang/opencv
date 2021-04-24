@@ -5,10 +5,12 @@ import os
 
 from watcher import Watcher
 from detector import FaceDetector
-from reactor import write_to_log, send_notify_if_detect
+from reactor import mk_log_dir_if_need, write_to_log, send_notify_if_detect, save_img
 from log import logging
 
 CAM_URL = os.environ.get('CAM_URL', 'http://192.168.68.58:8081')
+if CAM_URL.isnumeric():
+    CAM_URL = int(CAM_URL)
 
 INACTIVE_SECS = 30
 
@@ -30,14 +32,17 @@ def _filter_last_detect(results, now):
 
     return filtered_result
 
-def detect_callback(results):
-    now = datetime.now()
+def detect_callback(results, img):
+    now = datetime.now() + timedelta(hours=8)
     filtered_result = _filter_last_detect(results, now)
 
-    write_to_log(filtered_result, now + timedelta(hours=8))
+    save_img(filtered_result, now, img)
+    write_to_log(filtered_result, now)
     send_notify_if_detect(filtered_result)
 
 def main():
+    mk_log_dir_if_need()
+
     watcher = Watcher(
         url=CAM_URL,
         detector=FaceDetector(),

@@ -6,9 +6,10 @@ from displayer import draw_locations, show_to_window
 
 class Watcher:
 
-    def __init__(self, url, detector, show_window=False, event_func=None, resize_factor=None):
+    def __init__(self, url, detector, draw_locations=True, show_window=False, event_func=None, resize_factor=None):
         self.url = url
         self.detector = detector
+        self.draw_locations = draw_locations
         self.show_window = show_window
         self.event_func = event_func
         self.resize_factor = resize_factor
@@ -24,12 +25,14 @@ class Watcher:
 
             results = self.detector.detect(small_img)
 
-            if results and callable(self.event_func):
-                self.event_func(results)
+            if self.draw_locations:
+                draw_locations(img, results, scale=int(1 / self.resize_factor) if self.resize_factor else 1)
 
             if self.show_window:
-                draw_locations(img, results, scale=int(1 / self.resize_factor) if self.resize_factor else 1)
                 show_to_window(img)
+
+            if results and callable(self.event_func):
+                self.event_func(results, img)
 
     def _read_img(self):
         success = False
@@ -39,18 +42,9 @@ class Watcher:
                 return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             else:
                 logging.info('Load image from source fail, wait 1 sec and retry.')
-                sleep(1000)
+                sleep(1)
 
     def _resize_if_need(self, img):
         if self.resize_factor:
             height, width, _ = img.shape
             return cv2.resize(img, (int(width*self.resize_factor), int(height*self.resize_factor)), interpolation=cv2.INTER_NEAREST)
-
-
-def main():
-    cam = Webcam('http://192.168.68.58:8081/', FaceDetector(debug=True), True)
-    cam.run()
-
-
-if __name__ == '__main__':
-    main()
