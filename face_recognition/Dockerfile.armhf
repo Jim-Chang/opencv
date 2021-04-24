@@ -1,12 +1,12 @@
 FROM dorajim15/face-recognition-opencv-contrib-python:1.3.0-4.4.0
 
-RUN groupadd -r watcher
-RUN useradd -r -u 1010 -g watcher watcher
+# RUN groupadd -r watcher
+# RUN useradd -r -u 1010 -g watcher watcher
 RUN pip install requests
 
 WORKDIR /app
 COPY . /app
-RUN chown -R watcher /app
+# RUN chown -R watcher /app
 
-USER watcher
+# USER watcher
 ENTRYPOINT ["python", "home_watcher.py"]
