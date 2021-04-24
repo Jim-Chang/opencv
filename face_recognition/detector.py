@@ -4,10 +4,9 @@ import numpy as np
 import face_recognition
 import os
 import time
+from log import logging
 
 IMAGE_FOLDER = 'images'
-RED_COLOR = (200, 58, 76)
-WHITE_COLOR = (255, 255, 255)
 
 class Face(NamedTuple):
     name: str
@@ -39,24 +38,17 @@ def load_faces() -> List[Face]:
 
     return faces
 
-# img => RGB
-def draw_location(img, match_result, scale=1):
-    y1, x2, y2, x1 = match_result.location
-    y1, x2, y2, x1 = y1 * scale, x2 * scale, y2 * scale, x1 * scale
-    cv2.rectangle(img, (x1, y1), (x2, y2), RED_COLOR, 2)
-    cv2.rectangle(img, (x1, y2 - 35), (x2, y2), RED_COLOR, cv2.FILLED)
-    cv2.putText(img, match_result.name, (x1 + 10, y2-10), cv2.FONT_HERSHEY_COMPLEX, 0.8, WHITE_COLOR, 2)
-
 class FaceDetector:
 
-    def __init__(self, debug=False):
+    def __init__(self, tolerance=0.6, debug=False):
+        self.tolerance = tolerance
         self.debug = debug
-        print('loading known face encodes...')
+        logging.info('loading known face encodes...')
 
         _t = time.time()
         self.faces = load_faces()
 
-        print(f'load finish!, use {time.time() - _t} seconds')
+        logging.info(f'load finish!, use {time.time() - _t} seconds')
 
     @property
     def face_encodes(self):
@@ -79,20 +71,15 @@ class FaceDetector:
         cur_face_encodes = face_recognition.face_encodings(img, cur_face_locs)
 
         for cur_face_loc, cur_face_encode in zip(cur_face_locs, cur_face_encodes):
-            matches = face_recognition.compare_faces(self.face_encodes, cur_face_encode)
             face_dis = face_recognition.face_distance(self.face_encodes, cur_face_encode)
 
             if self.debug:
-                print('matches', list(zip(matches, self.face_names)))
                 print('face_dis', list(zip(face_dis, self.face_names)))
 
-            match_index = np.argmin(face_dis)
-            if matches[match_index]:
-                if self.debug:
-                    print('match name:', self.faces[match_index].name)
-
+            min_dis_index = np.argmin(face_dis)
+            if face_dis[min_dis_index] <= self.tolerance:
                 results.append(MatchResult(
-                    name=self.faces[match_index].name,
+                    name=self.faces[min_dis_index].name,
                     location=cur_face_loc,
                     unknown=False
                 ))
