@@ -139,4 +139,4 @@ cython_debug/
 
 # face_recognition
 face_recognition/test_images/**
-face_recognition/*log*
+face_recognition/*log/
