@@ -4,6 +4,9 @@ from log import logging
 from detector import FaceDetector, load_img_2_rgb
 from displayer import draw_locations, show_to_window
 
+import threading
+import queue
+
 class Watcher:
 
     def __init__(self, url, detector, draw_locations=True, show_window=False, event_func=None, resize_factor=None):
@@ -53,3 +56,57 @@ class Watcher:
         if self.resize_factor:
             height, width, _ = img.shape
             return cv2.resize(img, (int(width*self.resize_factor), int(height*self.resize_factor)), interpolation=cv2.INTER_NEAREST)
+
+class MTWatcher(Watcher):
+
+    def __init__(self, url, detector, thread_num=2, draw_locations=True, event_func=None, resize_factor=None):
+        super().__init__(url, detector, draw_locations=draw_locations, event_func=event_func, resize_factor=resize_factor)
+        self.thread_num = thread_num
+        self.queue = queue.Queue()
+        self.is_file_end = False
+
+        self.threads = []
+        for i in range(0, self.thread_num):
+            self.threads.append(threading.Thread(target=self._decode_job, args=(i,)))
+            self.threads[i].start()
+
+    def run(self):
+        logging.info(f'Start detect from file: {self.url}')
+
+        while True:
+            success, img = self.cap.read()
+            if success:
+                self.queue.put(img)
+            else:
+                logging.info('Video read is finish.')
+                self.is_file_end = True
+                break
+
+        # wait decode jobs
+        for i in range(0, self.thread_num):
+            self.threads[i].join()
+
+        self.cap.release()
+
+        logging.info('All finish.')
+
+    def _decode_job(self, index):
+        logging.info(f'start decode worker {index}.')
+        
+        while not self.is_file_end or self.queue.qsize() > 0:
+            if self.queue.qsize() > 0:
+                img = self.queue.get()
+                self._decode(img)
+        
+        logging.info(f'decode worker {index} finish.')
+
+    def _decode(self, img):
+        small_img = self._resize_if_need(img)
+        results = self.detector.detect(cv2.cvtColor(small_img, cv2.COLOR_BGR2RGB))
+
+        if self.draw_locations:
+            draw_locations(img, results, scale=int(1 / self.resize_factor) if self.resize_factor else 1)
+
+        if results and callable(self.event_func):
+            logging.info(results)
+            self.event_func(results, img)

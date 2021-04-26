@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import time
 import os
 
-from watcher import Watcher
+from watcher import MTWatcher
 from detector import FaceDetector
 from reactor import mk_log_dir_if_need, write_to_log, send_notify_if_detect, save_img, disable_motion_detector_if_need
 from log import logging
@@ -36,19 +36,21 @@ def detect_callback(results, img):
     # send_notify_if_detect(filtered_result, img)
     # disable_motion_detector_if_need(filtered_result)
 
-def main(file_url):
+def main(file_path):
     mk_log_dir_if_need()
 
-    watcher = Watcher(
-        url=file_url,
+    watcher = MTWatcher(
+        url=file_path,
         detector=FaceDetector(),
         event_func=detect_callback,
-        show_window=True,
         resize_factor=0.5
     )
+
+    _t = time.time()
     watcher.run()
+    logging.info(f'Use {time.time() - _t} seconds')
 
 
 if __name__ == '__main__':
-    file_url = 'videos/18-24-13.mp4'
-    main(file_url)
+    file_path = 'videos/18-24-13.mp4'
+    main(file_path)
