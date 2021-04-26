@@ -2,39 +2,44 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 import time
 import os
+import sys
+from typing import NamedTuple, List
 
 from watcher import MTWatcher
 from detector import FaceDetector
-from reactor import mk_log_dir_if_need, write_to_log, send_notify_if_detect, save_img, disable_motion_detector_if_need
+from reactor import imencode_jpg, send_notify_with_exist_recs
+from reactor import mk_log_dir_if_need, save_img, disable_motion_detector_if_need
 from log import logging
 
-# name: datetime
-last_detect_history = defaultdict(lambda: None)
+VIDEO_FOLDER = 'videos'
 
-def _filter_last_detect(results, now):
-    filtered_result = []
+# ExistRecords
+exist_recs = []
+exist_name_set = set()
 
-    for result in results:
-        last_detect_at = last_detect_history[result.name]
-        # 出現後 30 秒為不反應期
-        if last_detect_at is None or now - last_detect_at > timedelta(seconds=INACTIVE_SECS):
-            logging.info(f'detect face, face name: {result.name}')
-            last_detect_history[result.name] = now
-            filtered_result.append(result)
-        else:
-            logging.info(f'in inactive state, face name: {result.name}')
+# name: (MatchResult, jpg_img_bytes)
+class ExistRecord(NamedTuple):
+    matchs: List
+    img: bytes
 
-    return filtered_result
-
+# MatchResult, np array
 def detect_callback(results, img):
-    pass
-    # now = datetime.now() + timedelta(hours=8)
-    # filtered_result = _filter_last_detect(results, now)
+    filtered_result = []
+    
+    for result in results:
+        # 只抓第一次出現
+        if result.name not in exist_name_set:
+            logging.info(f'detect face, face name: {result.name}')
+            exist_name_set.add(result.name)
+            filtered_result.append(result)
 
-    # save_img(filtered_result, now, img)
-    # write_to_log(filtered_result, now)
-    # send_notify_if_detect(filtered_result, img)
-    # disable_motion_detector_if_need(filtered_result)
+        else:
+            logging.info(f'this face has existed, name: {result.name}')
+    
+    exist_recs.append(ExistRecord(
+        filtered_result,
+        imencode_jpg(img)
+    ))
 
 def main(file_path):
     mk_log_dir_if_need()
@@ -50,7 +55,17 @@ def main(file_path):
     watcher.run()
     logging.info(f'Use {time.time() - _t} seconds')
 
+    send_notify_with_exist_recs(exist_recs)
+
+    matchs = []
+    for r in exist_recs:
+        matchs += r.matchs
+    disable_motion_detector_if_need(matchs)
 
 if __name__ == '__main__':
-    file_path = 'videos/18-24-13.mp4'
-    main(file_path)
+    if len(sys.argv) < 2:
+        print('please provide video file name')
+    
+    else:
+        file_name = sys.argv[1]
+        main(f'{VIDEO_FOLDER}/{file_name}')

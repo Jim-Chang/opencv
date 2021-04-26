@@ -56,39 +56,58 @@ class Watcher:
         if self.resize_factor:
             height, width, _ = img.shape
             return cv2.resize(img, (int(width*self.resize_factor), int(height*self.resize_factor)), interpolation=cv2.INTER_NEAREST)
+        
+        return img
 
 class MTWatcher(Watcher):
+    img_queue_full_wait = 2  # sec
 
-    def __init__(self, url, detector, thread_num=2, draw_locations=True, event_func=None, resize_factor=None):
+    def __init__(self, url, detector, thread_num=2, max_img_q=100, draw_locations=True, event_func=None, resize_factor=None):
         super().__init__(url, detector, draw_locations=draw_locations, event_func=event_func, resize_factor=resize_factor)
         self.thread_num = thread_num
+        self.max_img_q = max_img_q
+
         self.queue = queue.Queue()
         self.is_file_end = False
 
         self.threads = []
         for i in range(0, self.thread_num):
             self.threads.append(threading.Thread(target=self._decode_job, args=(i,)))
-            self.threads[i].start()
+
+        self.load_thread = threading.Thread(target=self._load_job)
 
     def run(self):
         logging.info(f'Start detect from file: {self.url}')
 
-        while True:
-            success, img = self.cap.read()
-            if success:
-                self.queue.put(img)
-            else:
-                logging.info('Video read is finish.')
-                self.is_file_end = True
-                break
+        # start load video job
+        self.load_thread.start()
 
-        # wait decode jobs
-        for i in range(0, self.thread_num):
-            self.threads[i].join()
+        # start decode jobs
+        for t in self.threads:
+            t.start()
+
+        # wait jobs
+        for t in self.threads + [self.load_thread]:
+            t.join()
 
         self.cap.release()
 
         logging.info('All finish.')
+
+    def _load_job(self):
+        while True:
+            if self.queue.qsize() < self.max_img_q:
+                success, img = self.cap.read()
+                if success:
+                    self.queue.put(img)
+                else:
+                    logging.info('Video read is finish.')
+                    self.is_file_end = True
+                    break
+            
+            else:
+                logging.debug('image queue is full, wait to load video.')
+                sleep(self.img_queue_full_wait)
 
     def _decode_job(self, index):
         logging.info(f'start decode worker {index}.')

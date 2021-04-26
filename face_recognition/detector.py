@@ -69,6 +69,9 @@ class FaceDetector:
         results = []
 
         cur_face_locs = face_recognition.face_locations(img)
+        if not cur_face_locs:
+            return []
+
         cur_face_encodes = face_recognition.face_encodings(img, cur_face_locs)
 
         for cur_face_loc, cur_face_encode in zip(cur_face_locs, cur_face_encodes):

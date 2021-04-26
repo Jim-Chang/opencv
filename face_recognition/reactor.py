@@ -24,6 +24,9 @@ def mk_log_dir_if_need():
     if not os.path.isdir(LOG_IMG_FOLDER):
         os.mkdir(LOG_IMG_FOLDER)
 
+def imencode_jpg(img):
+    return cv2.imencode('.jpg', img)[1].tobytes()
+
 # img => GBR
 def send_notify_if_detect(results, img):
     if results:
@@ -33,6 +36,18 @@ def send_notify_if_detect(results, img):
 
         data = {'message': msg}
         files = {'imageFile': cv2.imencode('.jpg', img)[1].tobytes()}
+
+        requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data=data, files=files)
+
+# ExistRecord
+def send_notify_with_exist_recs(exist_recs):
+    for rec in exist_recs:
+        msg = DETECT_MSG + DETECT_MSG_KNOWN.format(', '.join(m.name for m in rec.matchs if m.unknown is False))
+        if any(m.unknown for m in rec.matchs):
+            msg += DETECT_MSG_UNKNOWN
+
+        data = {'message': msg}
+        files = {'imageFile': rec.img}
 
         requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data=data, files=files)
 
@@ -49,11 +64,11 @@ def save_img(results, detect_at, img):
         filename = f'{detect_at.strftime("%Y%m%d-%H%M%S")}_' + '_'.join([r.name for r in results]) + '.jpg'
         cv2.imwrite(LOG_IMG_FOLDER+ '/' + filename, img)
 
-def disable_motion_detector_if_need(results, camera_id=1):
-    if _get_motion_detector_status(camera_id) is False:
-        return
-        
+def disable_motion_detector_if_need(results, camera_id=1):        
     if results and any(not r.unknown for r in results):
+        if _get_motion_detector_status(camera_id) is False:
+            return
+            
         # 'http://192.168.68.58:7999/0/detection/pause'
         try:
             r = requests.get(f'{MOTION_IP}/{camera_id}/detection/pause')
