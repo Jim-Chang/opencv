@@ -14,13 +14,24 @@ class Watcher:
         self.event_func = event_func
         self.resize_factor = resize_factor
 
+        self.is_cam = self.url.isnumeric() or self.url.startswith('http')
+
         self.cap = cv2.VideoCapture(url)
 
     def run(self):
         logging.info(f'Start detect from webcam: {self.url}')
 
         while True:
-            img = self._read_img()
+            success, img = self.cap.read()
+            if not success:
+                if self.is_cam:
+                    logging.info('Load image from source fail, wait 1 sec and retry.')
+                    sleep(1)
+                    continue
+                else:
+                    logging.info('Video is end.')
+                    break
+
             small_img = self._resize_if_need(img)
 
             results = self.detector.detect(cv2.cvtColor(small_img, cv2.COLOR_BGR2RGB))
@@ -34,15 +45,9 @@ class Watcher:
             if results and callable(self.event_func):
                 self.event_func(results, img)
 
-    def _read_img(self):
-        success = False
-        while success is False:
-            success, img = self.cap.read()
-            if success:
-                return img
-            else:
-                logging.info('Load image from source fail, wait 1 sec and retry.')
-                sleep(1)
+        self.cap.release()
+        if self.show_window:
+            cv2.destroyAllWindows()
 
     def _resize_if_need(self, img):
         if self.resize_factor:
