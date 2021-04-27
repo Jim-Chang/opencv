@@ -15,7 +15,7 @@ class Face(NamedTuple):
 class MatchResult(NamedTuple):
     name: str
     location: Any
-    unknown: bool
+    is_unknown: bool
 
 
 def load_img_2_rgb(path):
@@ -85,14 +85,14 @@ class FaceDetector:
                 results.append(MatchResult(
                     name=self.faces[min_dis_index].name,
                     location=cur_face_loc,
-                    unknown=False
+                    is_unknown=False
                 ))
 
             else:
                 results.append(MatchResult(
                     name='unknown',
                     location=cur_face_loc,
-                    unknown=True
+                    is_unknown=True
                 ))
 
         return results

@@ -13,7 +13,8 @@ LING_NOTIFY_HEADERS = {'Authorization': 'Bearer {}'.format(LINE_NOTIFY_TOKEN)}
 
 DETECT_MSG = '我發現有人回家了'
 DETECT_MSG_KNOWN = '，是{}'
-DETECT_MSG_UNKNOWN = '\n但有我不認識的人'
+DETECT_MSG_UNKNOWN = '，但有我不認識的人'
+NO_DETECT_MSG = '我發現影片裡面沒有人'
 
 MOTION_IP = 'http://192.168.68.58:7999'
 
@@ -30,8 +31,8 @@ def imencode_jpg(img):
 # img => GBR
 def send_notify_if_detect(results, img):
     if results:
-        msg = DETECT_MSG + DETECT_MSG_KNOWN.format(', '.join(r.name for r in results if r.unknown is False))
-        if any(r.unknown for r in results):
+        msg = DETECT_MSG + DETECT_MSG_KNOWN.format(', '.join(r.name for r in results if r.is_unknown is False))
+        if any(r.is_unknown for r in results):
             msg += DETECT_MSG_UNKNOWN
 
         data = {'message': msg}
@@ -40,16 +41,28 @@ def send_notify_if_detect(results, img):
         requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data=data, files=files)
 
 # ExistRecord
-def send_notify_with_exist_recs(exist_recs):
-    for rec in exist_recs:
-        msg = DETECT_MSG + DETECT_MSG_KNOWN.format(', '.join(m.name for m in rec.matchs if m.unknown is False))
-        if any(m.unknown for m in rec.matchs):
+def send_notify_with_data_set(name_set, img_set, has_unknown, dry_run=False):
+
+    if name_set or has_unknown:
+        msg = DETECT_MSG
+
+        if name_set:
+            msg += DETECT_MSG_KNOWN.format(', '.join(n for n in name_set))
+
+        if has_unknown:
             msg += DETECT_MSG_UNKNOWN
 
-        data = {'message': msg}
-        files = {'imageFile': rec.img}
+    else:
+        msg = NO_DETECT_MSG
 
-        requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data=data, files=files)
+    if dry_run:
+        print(f'message: {msg}')
+        print(f'img count: {len(img_set)}')
+
+    else:
+        requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg})
+        for img in img_set:
+            requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, files={'imageFile': img})
 
 def write_to_log(results, detect_at):
     if results:
@@ -64,30 +77,39 @@ def save_img(results, detect_at, img):
         filename = f'{detect_at.strftime("%Y%m%d-%H%M%S")}_' + '_'.join([r.name for r in results]) + '.jpg'
         cv2.imwrite(LOG_IMG_FOLDER+ '/' + filename, img)
 
-def disable_motion_detector_if_need(results, camera_id=1):        
-    if results and any(not r.unknown for r in results):
-        if _get_motion_detector_status(camera_id) is False:
-            return
-            
-        # 'http://192.168.68.58:7999/0/detection/pause'
-        try:
-            r = requests.get(f'{MOTION_IP}/{camera_id}/detection/pause')
-            # Camera 1 Detection paused\nDone \n'
-            if 'paused' in r.text:
-                result = True
-            else:
-                logging.warning('[Motion] set detection stop fail: {}'.format(r.text))
-                result = False
 
-        except Exception:
-            logging.error('[Motion] motion server connect fail', exc_info=True)
+def disable_motion_detector_if_need(results, camera_id=1):        
+    if results and any(not r.is_unknown for r in results):
+        disable_motion_detector()
+
+def disable_motion_detector(camera_id=1, dry_run=False):
+    if dry_run:
+        print('我關閉動態偵測了')
+        return
+
+    if _get_motion_detector_status(camera_id) is False:
+        return
+
+    # 'http://192.168.68.58:7999/0/detection/pause'
+    try:
+        r = requests.get(f'{MOTION_IP}/{camera_id}/detection/pause')
+        # Camera 1 Detection paused\nDone \n'
+        if 'paused' in r.text:
+            result = True
+        else:
+            logging.warning('[Motion] set detection stop fail: {}'.format(r.text))
             result = False
 
-        requests.post(
-            LINE_NOTIRY_API,
-            headers=LING_NOTIFY_HEADERS,
-            data={'message': '我關閉動態偵測了' if result else '關閉偵測失敗了！'}
-        )
+    except Exception:
+        logging.error('[Motion] motion server connect fail', exc_info=True)
+        result = False
+
+    requests.post(
+        LINE_NOTIRY_API,
+        headers=LING_NOTIFY_HEADERS,
+        data={'message': '我關閉動態偵測了' if result else '關閉偵測失敗了！'}
+    )
+
 
 def _get_motion_detector_status(camera_id=1):
     # 'http://192.168.68.58:7999/0/detection/status'
