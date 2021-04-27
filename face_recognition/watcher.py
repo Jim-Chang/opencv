@@ -2,7 +2,7 @@ import cv2
 from time import sleep
 from log import logging
 from detector import FaceDetector, load_img_2_rgb
-from displayer import draw_locations, show_to_window
+from utils import draw_locations, show_to_window
 
 import threading
 import queue
@@ -124,7 +124,7 @@ class MTWatcher(Watcher):
         results = self.detector.detect(cv2.cvtColor(small_img, cv2.COLOR_BGR2RGB))
 
         if self.draw_locations:
-            draw_locations(img, results, scale=int(1 / self.resize_factor) if self.resize_factor else 1)
+            draw_locations(img, results, scale=1 / self.resize_factor if self.resize_factor is not None else 1)
 
         if results and callable(self.event_func):
             logging.info(results)

@@ -2,6 +2,7 @@ import os
 import cv2
 import requests
 from log import logging
+from utils import im_nparr_2_bytes, im_bytes_2_nparr, im_concat
 
 LOG_FOLDER = 'log'
 LOG_IMG_FOLDER = 'log/img'
@@ -25,9 +26,6 @@ def mk_log_dir_if_need():
     if not os.path.isdir(LOG_IMG_FOLDER):
         os.mkdir(LOG_IMG_FOLDER)
 
-def imencode_jpg(img):
-    return cv2.imencode('.jpg', img)[1].tobytes()
-
 # img => GBR
 def send_notify_if_detect(results, img):
     if results:
@@ -36,13 +34,12 @@ def send_notify_if_detect(results, img):
             msg += DETECT_MSG_UNKNOWN
 
         data = {'message': msg}
-        files = {'imageFile': cv2.imencode('.jpg', img)[1].tobytes()}
+        files = {'imageFile': im_nparr_2_bytes(img)}
 
         requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data=data, files=files)
 
 # ExistRecord
-def send_notify_with_data_set(name_set, img_set, has_unknown, dry_run=False):
-
+def send_notify_with_data_set(name_set, img_bdata_set, has_unknown, dry_run=False):
     if name_set or has_unknown:
         msg = DETECT_MSG
 
@@ -55,14 +52,22 @@ def send_notify_with_data_set(name_set, img_set, has_unknown, dry_run=False):
     else:
         msg = NO_DETECT_MSG
 
-    if dry_run:
-        print(f'message: {msg}')
-        print(f'img count: {len(img_set)}')
+    if img_bdata_set:
+        imgs = [im_bytes_2_nparr(bdata) for bdata in img_bdata_set]
+        big_img = im_nparr_2_bytes(im_concat(imgs))
 
     else:
-        requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg})
-        for img in img_set:
-            requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, files={'imageFile': img})
+        big_img = None
+
+    if dry_run:
+        print(f'message: {msg}')
+        print(f'img count: {len(img_bdata_set)}')
+
+    else:
+        if big_img:
+            requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg}, files={'imageFile': big_img})
+        else:
+            requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg})
 
 def write_to_log(results, detect_at):
     if results:

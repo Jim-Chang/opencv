@@ -8,7 +8,8 @@ from typing import NamedTuple, List
 
 from watcher import MTWatcher
 from detector import FaceDetector, MatchResult
-from reactor import imencode_jpg, send_notify_with_data_set, disable_motion_detector, mk_log_dir_if_need
+from utils import im_nparr_2_bytes
+from reactor import send_notify_with_data_set, disable_motion_detector, mk_log_dir_if_need
 from log import logging
 
 VIDEO_FOLDER = 'videos'
@@ -25,7 +26,7 @@ class ExistRecord(NamedTuple):
 def _detect_callback(results: List[MatchResult], img):
     exist_recs.append(ExistRecord(
         results,
-        imencode_jpg(img)
+        im_nparr_2_bytes(img)
     ))
 
 def _filter_recs(recs: List[ExistRecord]):
@@ -70,7 +71,7 @@ def main():
         detector=FaceDetector(),
         thread_num=3,
         event_func=_detect_callback,
-        resize_factor=0.5
+        resize_factor=0.75
     )
 
     _t = time.time()
