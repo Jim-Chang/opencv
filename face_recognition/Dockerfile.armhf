@@ -9,4 +9,4 @@ COPY . /app
 # RUN chown -R watcher /app
 
 # USER watcher
-ENTRYPOINT ["python", "home_watcher.py"]
+ENTRYPOINT ["python"]
