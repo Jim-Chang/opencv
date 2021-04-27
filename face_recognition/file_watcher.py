@@ -71,7 +71,7 @@ def main():
         detector=FaceDetector(),
         thread_num=3,
         event_func=_detect_callback,
-        resize_factor=0.75
+        resize_factor=0.5
     )
 
     _t = time.time()
