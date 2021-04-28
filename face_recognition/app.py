@@ -15,6 +15,6 @@ def on_new_record():
     camera, date, filename = data[4], data[5], data[6]
     send_notify(f'發現動靜！\n日期：{date}\n檔名：{filename}\n辨識中...')
 
-    subprocess.Popen(['python', 'file_watcher.py', filename])
+    subprocess.Popen(['python', 'file_watcher.py', f'{date}/{filename}'])
 
     return make_response('', 200)
