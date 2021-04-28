@@ -9,7 +9,7 @@ from typing import NamedTuple, List
 from watcher import MTWatcher
 from detector import FaceDetector, MatchResult
 from utils import im_nparr_2_bytes
-from reactor import send_notify_with_data_set, disable_motion_detector, mk_log_dir_if_need
+from reactor import send_detected_notify_with_data_set, disable_motion_detector, send_notify
 from log import logging
 
 VIDEO_FOLDER = 'videos'
@@ -53,7 +53,7 @@ def _filter_recs(recs: List[ExistRecord]):
 
 def _arg_parse():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', type=str, help='image file')
+    parser.add_argument('file_name', type=str, help='image file')
     parser.add_argument('-d', '--dryrun', action='store_true', help='dry run')
     return parser.parse_args()
 
@@ -61,10 +61,14 @@ def _arg_parse():
 def main():
     args = _arg_parse()
 
-    file_path = f'{VIDEO_FOLDER}/{args.file}'
+    file_path = f'{VIDEO_FOLDER}/{args.file_name}'
     dryrun = args.dryrun
 
-    mk_log_dir_if_need()
+    if dryrun:
+        logging.warning('Run in DRYRUN mode')
+    
+    if not dryrun:
+        send_notify(f'發現動靜！\n日期：{datetime.now().strftime("%Y/%m/%d")}\n檔名：{args.file_name}\n辨識中...')
 
     watcher = MTWatcher(
         url=file_path,
@@ -79,7 +83,7 @@ def main():
     logging.info(f'Use {time.time() - _t} seconds')
 
     name_set, img_set, has_match, has_unknown = _filter_recs(exist_recs)
-    send_notify_with_data_set(name_set, img_set, has_unknown, dry_run=dryrun)
+    send_detected_notify_with_data_set(name_set, img_set, has_unknown, dry_run=dryrun)
 
     if has_match:
         disable_motion_detector(dry_run=dryrun)

@@ -26,6 +26,12 @@ def mk_log_dir_if_need():
     if not os.path.isdir(LOG_IMG_FOLDER):
         os.mkdir(LOG_IMG_FOLDER)
 
+def send_notify(msg: str, img: bytes = None):
+    if img:
+        requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg}, files={'imageFile': img})
+    else:
+        requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg})
+
 # img => GBR
 def send_notify_if_detect(results, img):
     if results:
@@ -33,13 +39,10 @@ def send_notify_if_detect(results, img):
         if any(r.is_unknown for r in results):
             msg += DETECT_MSG_UNKNOWN
 
-        data = {'message': msg}
-        files = {'imageFile': im_nparr_2_bytes(img)}
-
-        requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data=data, files=files)
+        send_notify(msg, im_nparr_2_bytes(img))
 
 # ExistRecord
-def send_notify_with_data_set(name_set, img_bdata_set, has_unknown, dry_run=False):
+def send_detected_notify_with_data_set(name_set, img_bdata_set, has_unknown, dry_run=False):
     if name_set or has_unknown:
         msg = DETECT_MSG
 
@@ -64,10 +67,7 @@ def send_notify_with_data_set(name_set, img_bdata_set, has_unknown, dry_run=Fals
         print(f'img count: {len(img_bdata_set)}')
 
     else:
-        if big_img:
-            requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg}, files={'imageFile': big_img})
-        else:
-            requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg})
+        send_notify(msg, big_img)
 
 def write_to_log(results, detect_at):
     if results:
