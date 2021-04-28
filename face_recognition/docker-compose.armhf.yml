@@ -15,6 +15,7 @@ services:
     mem_limit: 500M
     volumes:
       - ./:/app
+      - /home/jim/motioneye/record/MainDoor/:/app/videos
     logging:
       driver: "json-file"
       options:
