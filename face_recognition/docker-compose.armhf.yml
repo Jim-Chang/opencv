@@ -7,6 +7,9 @@ services:
     image: home-watcher:latest
     container_name: home-watcher
     restart: always
+    command: uwsgi --ini uwsgi.ini
+    ports:
+      - "9001:8080"
     networks:
       - home-watcher
     mem_limit: 500M
