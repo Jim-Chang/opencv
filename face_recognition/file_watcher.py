@@ -9,7 +9,7 @@ from typing import NamedTuple, List
 from watcher import MTWatcher
 from detector import FaceDetector, MatchResult
 from utils import im_nparr_2_bytes
-from reactor import send_detected_notify_with_data_set, disable_motion_detector, send_notify
+from reactor import send_detected_notify_with_data_set, disable_motion_detector
 from log import logging
 
 VIDEO_FOLDER = 'videos'
@@ -58,18 +58,12 @@ def _arg_parse():
     return parser.parse_args()
 
 
-def main():
-    args = _arg_parse()
-
-    file_path = f'{VIDEO_FOLDER}/{args.file_name}'
-    dryrun = args.dryrun
+def main(file_name, dryrun=False):
+    file_path = f'{VIDEO_FOLDER}/{file_name}'
 
     if dryrun:
         logging.warning('Run in DRYRUN mode')
     
-    if not dryrun:
-        send_notify(f'發現動靜！\n日期：{datetime.now().strftime("%Y/%m/%d")}\n檔名：{args.file_name}\n辨識中...')
-
     watcher = MTWatcher(
         url=file_path,
         detector=FaceDetector(),
@@ -90,4 +84,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    args = _arg_parse()
+    main(args.file_name, args.dryrun)
