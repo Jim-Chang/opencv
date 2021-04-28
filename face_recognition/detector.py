@@ -4,10 +4,9 @@ import numpy as np
 import face_recognition
 import os
 import time
-import json
 from log import logging
+from utils import IMAGE_FOLDER
 
-IMAGE_FOLDER = 'images'
 
 class Face(NamedTuple):
     name: str
@@ -54,7 +53,6 @@ class FaceDetector:
 
         _t = time.time()
         self.faces = _load_faces()
-        self.meta_data = _load_meta_data_json()
 
         logging.info(f'load finish!, use {time.time() - _t} seconds')
 
@@ -71,9 +69,6 @@ class FaceDetector:
             self._face_names = [f.name for f in self.faces]
 
         return self._face_names
-
-    def _get_nickname(self, face: Face) -> str:
-        return self.meta_data['nickname_map'].get(face.name, '')
 
     # img: RGB
     def detect(self, img) -> List[MatchResult]:
@@ -94,7 +89,7 @@ class FaceDetector:
             min_dis_index = np.argmin(face_dis)
             if face_dis[min_dis_index] <= self.tolerance:
                 results.append(MatchResult(
-                    name=self._get_nickname(self.faces[min_dis_index]),
+                    name=self.faces[min_dis_index].name,
                     location=cur_face_loc,
                     is_unknown=False
                 ))

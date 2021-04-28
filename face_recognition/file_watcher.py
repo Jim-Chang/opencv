@@ -8,7 +8,7 @@ from typing import NamedTuple, List
 
 from watcher import MTWatcher
 from detector import FaceDetector, MatchResult
-from utils import im_nparr_2_bytes
+from utils import im_nparr_2_bytes, load_meta_data
 from reactor import send_detected_notify_with_data_set, disable_motion_detector
 from log import logging
 
@@ -32,7 +32,6 @@ def _detect_callback(results: List[MatchResult], img):
 def _filter_recs(recs: List[ExistRecord]):
     name_set = set()
     img_set = set()
-    has_match = False
     has_unknown = False
 
     for rec in recs:
@@ -41,14 +40,13 @@ def _filter_recs(recs: List[ExistRecord]):
             if m.is_unknown is False and m.name not in name_set:
                 name_set.add(m.name)
                 img_set.add(rec.img)
-                has_match = True
 
             # 未知，一率加入
             elif m.is_unknown is True:
                 img_set.add(rec.img)
                 has_unknown = True
 
-    return name_set, img_set, has_match, has_unknown
+    return name_set, img_set, has_unknown
 
 
 def _arg_parse():
@@ -63,6 +61,8 @@ def main(file_name, dryrun=False):
 
     if dryrun:
         logging.warning('Run in DRYRUN mode')
+
+    meta_data = load_meta_data()
     
     watcher = MTWatcher(
         url=file_path,
@@ -76,10 +76,13 @@ def main(file_name, dryrun=False):
     watcher.run()
     logging.info(f'Use {time.time() - _t} seconds')
 
-    name_set, img_set, has_match, has_unknown = _filter_recs(exist_recs)
-    send_detected_notify_with_data_set(name_set, img_set, has_unknown, dry_run=dryrun)
+    name_set, img_set, has_unknown = _filter_recs(exist_recs)
 
-    if has_match:
+    nickname_set = {meta_data.get_nickname(n) for n in name_set}
+    send_detected_notify_with_data_set(nickname_set, img_set, has_unknown, dry_run=dryrun)
+
+    authorize_name_set = meta_data.get_authorize_name_set()
+    if len(name_set.intersection(authorize_name_set)) > 0:
         disable_motion_detector(dry_run=dryrun)
 
 
