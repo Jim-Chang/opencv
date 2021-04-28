@@ -1,0 +1,11 @@
+{
+	"nickname_map": {
+		"Jim": "痞落",
+		"Kate": "吃豬",
+		"Mom": "偷偷來的 Xsao"
+	},
+	"authorize_list": [
+		"Jim",
+		"Kate"
+	]
+}

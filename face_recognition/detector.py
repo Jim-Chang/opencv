@@ -4,6 +4,7 @@ import numpy as np
 import face_recognition
 import os
 import time
+import json
 from log import logging
 
 IMAGE_FOLDER = 'images'
@@ -23,20 +24,26 @@ def load_img_2_rgb(path):
     return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 
-def load_faces() -> List[Face]:
+def _load_faces() -> List[Face]:
     faces = []
     file_list = os.listdir(IMAGE_FOLDER)
 
     for img_file in file_list:
-        img = load_img_2_rgb(f'{IMAGE_FOLDER}/{img_file}')
-        encode = face_recognition.face_encodings(img)[0]
+        if 'jpg' in img_file:
+            img = load_img_2_rgb(f'{IMAGE_FOLDER}/{img_file}')
+            encode = face_recognition.face_encodings(img)[0]
 
-        faces.append(Face(
-            name=img_file.split('.')[0].split('_')[0],   # Jim_1.jpg, Jim_2.jpg...
-            encode=encode,
-        ))
+            faces.append(Face(
+                name=img_file.split('.')[0].split('_')[0],   # Jim_1.jpg, Jim_2.jpg...
+                encode=encode,
+            ))
 
     return faces
+
+def _load_meta_data_json():
+    with open(f'{IMAGE_FOLDER}/meta_data.json', 'r') as f:
+        data = f.read()
+        return json.loads(data)
 
 class FaceDetector:
 
@@ -46,7 +53,8 @@ class FaceDetector:
         logging.info('loading known face encodes...')
 
         _t = time.time()
-        self.faces = load_faces()
+        self.faces = _load_faces()
+        self.meta_data = _load_meta_data_json()
 
         logging.info(f'load finish!, use {time.time() - _t} seconds')
 
@@ -63,6 +71,9 @@ class FaceDetector:
             self._face_names = [f.name for f in self.faces]
 
         return self._face_names
+
+    def _get_nickname(self, face: Face) -> str:
+        return self.meta_data['nickname_map'].get(face.name, '')
 
     # img: RGB
     def detect(self, img) -> List[MatchResult]:
@@ -83,7 +94,7 @@ class FaceDetector:
             min_dis_index = np.argmin(face_dis)
             if face_dis[min_dis_index] <= self.tolerance:
                 results.append(MatchResult(
-                    name=self.faces[min_dis_index].name,
+                    name=self._get_nickname(self.faces[min_dis_index]),
                     location=cur_face_loc,
                     is_unknown=False
                 ))
