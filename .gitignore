@@ -141,3 +141,4 @@ cython_debug/
 face_recognition/test_images/**
 face_recognition/log/**
 face_recognition/videos/**
+*.dat

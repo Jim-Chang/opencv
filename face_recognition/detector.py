@@ -5,12 +5,13 @@ import face_recognition
 import os
 import time
 from log import logging
-from utils import IMAGE_FOLDER
-
+from utils import IMAGE_FOLDER, FACE_DAT_FILE
+import pickle
 
 class Face(NamedTuple):
     name: str
     encode: Any
+    source: str  # jpg file name
 
 class MatchResult(NamedTuple):
     name: str
@@ -23,26 +24,62 @@ def load_img_2_rgb(path):
     return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 
-def _load_faces() -> List[Face]:
+def build_faces_dat():
+    file_list = _ls_face_image_names()
+    dat_path = f'{IMAGE_FOLDER}/{FACE_DAT_FILE}'
+
+    faces = load_faces_from_dat()
+
+    # 刪除 img 檔案不存在的 face
+    for face in faces:
+        if face.source not in file_list:
+            faces.remove(face)
+            logging.info(f'Delete encoding data of ${face.source} from dat')
+
+    logging.info('Load face img and encode if need')
+    faces += load_faces_from_img([f.source for f in faces])
+
+    logging.info('Save face encodings to dat file')
+    with open(f'{IMAGE_FOLDER}/{FACE_DAT_FILE}', 'wb') as f:
+        pickle.dump(faces, f)
+
+    logging.info('Finish')
+
+
+def _ls_face_image_names() -> List[str]:
+    return filter(lambda f: '.jpg' in f, os.listdir(IMAGE_FOLDER))
+
+
+def load_faces_from_dat() -> List[Face]:
     faces = []
-    file_list = os.listdir(IMAGE_FOLDER)
+    dat_path = f'{IMAGE_FOLDER}/{FACE_DAT_FILE}'
+
+    if os.path.exists(dat_path):
+        logging.info('Load face encodings from dat file')
+        with open(dat_path, 'rb') as f:
+            faces = pickle.load(f)
+
+    return faces
+
+
+def load_faces_from_img(exclude_filenames=[]) -> List[Face]:
+    faces = []
+    file_list = _ls_face_image_names()
 
     for img_file in file_list:
-        if 'jpg' in img_file:
+        # 只讀取 jpg，且在 dat 檔裡面沒有的
+        if img_file not in exclude_filenames:
             img = load_img_2_rgb(f'{IMAGE_FOLDER}/{img_file}')
             encode = face_recognition.face_encodings(img)[0]
 
             faces.append(Face(
                 name=img_file.split('.')[0].split('_')[0],   # Jim_1.jpg, Jim_2.jpg...
                 encode=encode,
+                source=img_file,
             ))
 
     return faces
 
-def _load_meta_data_json():
-    with open(f'{IMAGE_FOLDER}/meta_data.json', 'r') as f:
-        data = f.read()
-        return json.loads(data)
 
 class FaceDetector:
 
@@ -52,7 +89,12 @@ class FaceDetector:
         logging.info('loading known face encodes...')
 
         _t = time.time()
-        self.faces = _load_faces()
+
+        try:
+            self.faces = load_faces_from_dat()
+        except Exception as e:
+            logging.warning('Load face from dat fail, try to load from img')
+            self.faces = load_faces_from_img()
 
         logging.info(f'load finish!, use {time.time() - _t} seconds')
 

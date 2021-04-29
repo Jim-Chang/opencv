@@ -3,6 +3,8 @@ import numpy as np
 import json
 
 IMAGE_FOLDER = 'images'
+FACE_DAT_FILE = 'known_faces.dat'
+META_FILE = 'meta_data.json'
 
 # BGR
 RED_COLOR = (76, 58, 200)
@@ -53,6 +55,6 @@ class MetaData:
     
 
 def load_meta_data() -> MetaData:
-    with open(f'{IMAGE_FOLDER}/meta_data.json', 'r') as f:
+    with open(f'{IMAGE_FOLDER}/{META_FILE}', 'r') as f:
         data = f.read()
         return MetaData(json.loads(data))
