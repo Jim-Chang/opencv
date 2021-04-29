@@ -24,6 +24,7 @@ class ExistRecord(NamedTuple):
 
 # MatchResults, np array
 def _detect_callback(results: List[MatchResult], img):
+    global exists_recs
     exist_recs.append(ExistRecord(
         results,
         im_nparr_2_bytes(img)
@@ -57,7 +58,7 @@ def _arg_parse():
 
 
 def start_watcher(file_name, dryrun=False):
-    exist_recs = []
+    global exist_recs
     file_path = f'{VIDEO_FOLDER}/{file_name}'
 
     if dryrun:
@@ -85,6 +86,8 @@ def start_watcher(file_name, dryrun=False):
     authorize_name_set = meta_data.get_authorize_name_set()
     if len(name_set.intersection(authorize_name_set)) > 0:
         disable_motion_detector(dry_run=dryrun)
+
+    exist_recs = []
 
 
 if __name__ == '__main__':
