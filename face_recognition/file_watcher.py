@@ -57,6 +57,7 @@ def _arg_parse():
 
 
 def start_watcher(file_name, dryrun=False):
+    exist_recs = []
     file_path = f'{VIDEO_FOLDER}/{file_name}'
 
     if dryrun:
