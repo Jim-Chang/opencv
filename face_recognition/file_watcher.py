@@ -56,7 +56,7 @@ def _arg_parse():
     return parser.parse_args()
 
 
-def main(file_name, dryrun=False):
+def start_watcher(file_name, dryrun=False):
     file_path = f'{VIDEO_FOLDER}/{file_name}'
 
     if dryrun:
@@ -88,4 +88,4 @@ def main(file_name, dryrun=False):
 
 if __name__ == '__main__':
     args = _arg_parse()
-    main(args.file_name, args.dryrun)
+    start_watcher(args.file_name, args.dryrun)
