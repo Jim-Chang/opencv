@@ -62,12 +62,14 @@ class Watcher:
 class MTWatcher(Watcher):
     img_queue_full_wait = 2  # sec
 
-    def __init__(self, url, detector, thread_num=2, max_img_q=100, draw_locations=True, event_func=None, resize_factor=None):
+    def __init__(self, url, detector, thread_num=2, max_img_q=100, draw_locations=True, event_func=None, is_need_force_stop_func=None, resize_factor=None):
         super().__init__(url, detector, draw_locations=draw_locations, event_func=event_func, resize_factor=resize_factor)
         self.thread_num = thread_num
         self.max_img_q = max_img_q
+        self.is_need_force_stop_func = is_need_force_stop_func
 
         self.queue = queue.Queue()
+        self.lock = threading.Lock()
         self.is_file_end = False
 
         self.threads = []
@@ -75,6 +77,7 @@ class MTWatcher(Watcher):
             self.threads.append(threading.Thread(target=self._decode_job, args=(i,)))
 
         self.load_thread = threading.Thread(target=self._load_job)
+        self.force_stop = False
 
     def run(self):
         logging.info(f'Start detect from file: {self.url}')
@@ -96,6 +99,10 @@ class MTWatcher(Watcher):
 
     def _load_job(self):
         while True:
+            if self.force_stop:
+                logging.info('force_stop = True, stop load job')
+                break
+
             if self.queue.qsize() < self.max_img_q:
                 success, img = self.cap.read()
                 if success:
@@ -113,6 +120,10 @@ class MTWatcher(Watcher):
         logging.info(f'start decode worker {index}.')
         
         while not self.is_file_end or self.queue.qsize() > 0:
+            if self.force_stop:
+                logging.info('force_stop = True, stop decode job')
+                break
+
             if self.queue.qsize() > 0:
                 img = self.queue.get()
                 self._decode(img)
@@ -126,6 +137,14 @@ class MTWatcher(Watcher):
         if self.draw_locations:
             draw_locations(img, results, scale=1 / self.resize_factor if self.resize_factor is not None else 1)
 
-        if results and callable(self.event_func):
+        if results:
             logging.info(results)
-            self.event_func(results, img)
+
+            self.lock.acquire()
+
+            if callable(self.event_func):
+                self.event_func(results, img)
+            if callable(self.is_need_force_stop_func):
+                self.force_stop = self.is_need_force_stop_func()
+
+            self.lock.release()

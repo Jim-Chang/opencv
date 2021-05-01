@@ -59,7 +59,9 @@ def load_faces_from_dat() -> List[Face]:
         with open(dat_path, 'rb') as f:
             faces = pickle.load(f)
 
-    return faces
+        return faces
+
+    raise Exception('dat file not exist')
 
 
 def load_faces_from_img(exclude_filenames=[]) -> List[Face]:

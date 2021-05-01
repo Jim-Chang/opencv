@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 import time
 import os
 import sys
-from typing import NamedTuple, List
+from typing import List
+from dataclasses import dataclass
 
 from watcher import MTWatcher
 from detector import FaceDetector, MatchResult
@@ -14,21 +15,12 @@ from log import logging
 
 VIDEO_FOLDER = 'videos'
 
-# ExistRecords
-exist_recs = []
 
-# name: (MatchResult, jpg_img_bytes)
-class ExistRecord(NamedTuple):
+@dataclass
+class ExistRecord:
     matchs: List[MatchResult]
     img: bytes
 
-# MatchResults, np array
-def _detect_callback(results: List[MatchResult], img):
-    global exists_recs
-    exist_recs.append(ExistRecord(
-        results,
-        im_nparr_2_bytes(img)
-    ))
 
 def _filter_recs(recs: List[ExistRecord]):
     name_set = set()
@@ -58,36 +50,82 @@ def _arg_parse():
 
 
 def start_watcher(file_name, dryrun=False):
-    global exist_recs
-    file_path = f'{VIDEO_FOLDER}/{file_name}'
+    WatcherHandler(file_name, dryrun).start()
 
-    if dryrun:
-        logging.warning('Run in DRYRUN mode')
 
-    meta_data = load_meta_data()
-    
-    watcher = MTWatcher(
-        url=file_path,
-        detector=FaceDetector(),
-        thread_num=3,
-        event_func=_detect_callback,
-        resize_factor=0.5
-    )
+class WatcherHandler:
 
-    _t = time.time()
-    watcher.run()
-    logging.info(f'Use {time.time() - _t} seconds')
+    def __init__(self, file_name, dryrun=False):
+        self.file_path = f'{VIDEO_FOLDER}/{file_name}'
+        self.dryrun = dryrun
 
-    name_set, img_set, has_unknown = _filter_recs(exist_recs)
+        if self.dryrun:
+            logging.warning('Run in DRYRUN mode')
 
-    nickname_set = {meta_data.get_nickname(n) for n in name_set}
-    send_detected_notify_with_data_set(nickname_set, img_set, has_unknown, dry_run=dryrun)
+        # ExistRecords
+        self.exist_recs = []
+        self.matchs_name_set_buf = set()
 
-    authorize_name_set = meta_data.get_authorize_name_set()
-    if len(name_set.intersection(authorize_name_set)) > 0:
-        disable_motion_detector(dry_run=dryrun)
+        # MetaData
+        self.meta_data = load_meta_data()
+        self.authorize_name_set = self.meta_data.get_authorize_name_set()
 
-    exist_recs = []
+    def start(self):
+        watcher = MTWatcher(
+            url=self.file_path,
+            detector=FaceDetector(),
+            thread_num=3,
+            event_func=self._detect_callback,
+            is_need_force_stop_func=self._has_detect_authorize_face,
+            resize_factor=0.5
+        )
+
+        _t = time.time()
+        watcher.run()
+        logging.info(f'Use {time.time() - _t} seconds')
+
+        name_set, img_set, has_unknown = self._filter_recs(self.exist_recs)
+
+        nickname_set = {self.meta_data.get_nickname(n) for n in name_set}
+        send_detected_notify_with_data_set(nickname_set, img_set, has_unknown, dry_run=self.dryrun)
+
+        if len(name_set.intersection(self.authorize_name_set)) > 0:
+            disable_motion_detector(dry_run=self.dryrun)
+
+
+    # MatchResults, np array
+    def _detect_callback(self, results: List[MatchResult], img):
+        self.exist_recs.append(ExistRecord(
+            results,
+            im_nparr_2_bytes(img)
+        ))
+        self.matchs_name_set_buf.update([r.name for r in results])
+
+
+    # 回傳是否有偵測到授權的臉
+    def _has_detect_authorize_face(self) -> bool:
+        return len(self.matchs_name_set_buf.intersection(self.authorize_name_set)) > 0
+
+
+    @staticmethod
+    def _filter_recs(recs: List[ExistRecord]):
+        name_set = set()
+        img_set = set()
+        has_unknown = False
+
+        for rec in recs:
+            for m in rec.matchs:
+                # 已知，不重複加入
+                if m.is_unknown is False and m.name not in name_set:
+                    name_set.add(m.name)
+                    img_set.add(rec.img)
+
+                # 未知，一率加入
+                elif m.is_unknown is True:
+                    img_set.add(rec.img)
+                    has_unknown = True
+
+        return name_set, img_set, has_unknown
 
 
 if __name__ == '__main__':

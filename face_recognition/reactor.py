@@ -28,9 +28,12 @@ def mk_log_dir_if_need():
 
 def send_notify(msg: str, img: bytes = None):
     if img:
-        requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg}, files={'imageFile': img})
+        r = requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg}, files={'imageFile': img})
     else:
-        requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg})
+        r = requests.post(LINE_NOTIRY_API, headers=LING_NOTIFY_HEADERS, data={'message': msg})
+
+    if r.status_code != 200:
+        logging.warning(r.text)
 
 # img => GBR
 def send_notify_if_detect(results, img):
