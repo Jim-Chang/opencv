@@ -28,7 +28,11 @@ def build_faces_dat():
     file_list = _ls_face_image_names()
     dat_path = f'{IMAGE_FOLDER}/{FACE_DAT_FILE}'
 
-    faces = load_faces_from_dat()
+    try:
+        faces = load_faces_from_dat()
+    except Exception as e:
+        logging.warning('dat file not found')
+        faces = []
 
     # 刪除 img 檔案不存在的 face
     for face in faces:
