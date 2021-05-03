@@ -76,7 +76,7 @@ class WatcherHandler:
         watcher = MTWatcher(
             url=self.file_path,
             detector=FaceDetector(),
-            thread_num=3,
+            thread_num=4,
             event_func=self._detect_callback,
             is_need_force_stop_func=self._has_detect_authorize_face,
             resize_factor=self.resize_factor
