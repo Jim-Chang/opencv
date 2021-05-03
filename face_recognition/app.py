@@ -2,6 +2,8 @@ from flask import Flask, request, make_response
 from reactor import send_notify
 from file_watcher import start_watcher
 
+RESIZE_FACTOR = float(os.environ.get('RESIZE_FACTOR', 1))
+
 app = Flask(__name__)
 
 @app.route('/api/motion/record/new', methods=['POST'])
@@ -15,6 +17,6 @@ def on_new_record():
     camera, date, filename = data[4], data[5], data[6]
     send_notify(f'發現動靜！\n日期：{date}\n檔名：{filename}\n辨識中...')
 
-    start_watcher(f'{date}/{filename}')
+    start_watcher(f'{date}/{filename}', resize_factor=RESIZE_FACTOR)
 
     return make_response('', 200)

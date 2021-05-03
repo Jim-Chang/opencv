@@ -46,18 +46,20 @@ def _arg_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('file_name', type=str, help='image file')
     parser.add_argument('-d', '--dryrun', action='store_true', help='dry run')
+    parser.add_argument('-r', '--resize', type=float, help='resize factor')
     return parser.parse_args()
 
 
-def start_watcher(file_name, dryrun=False):
-    WatcherHandler(file_name, dryrun).start()
+def start_watcher(file_name, dryrun=False, resize_factor=1):
+    WatcherHandler(file_name, dryrun, resize_factor).start()
 
 
 class WatcherHandler:
 
-    def __init__(self, file_name, dryrun=False):
+    def __init__(self, file_name, dryrun=False, resize_factor=1):
         self.file_path = f'{VIDEO_FOLDER}/{file_name}'
         self.dryrun = dryrun
+        self.resize_factor = resize_factor
 
         if self.dryrun:
             logging.warning('Run in DRYRUN mode')
@@ -77,7 +79,7 @@ class WatcherHandler:
             thread_num=3,
             event_func=self._detect_callback,
             is_need_force_stop_func=self._has_detect_authorize_face,
-            resize_factor=0.5
+            resize_factor=self.resize_factor
         )
 
         _t = time.time()
@@ -130,4 +132,13 @@ class WatcherHandler:
 
 if __name__ == '__main__':
     args = _arg_parse()
-    start_watcher(args.file_name, args.dryrun)
+
+    param = {
+        'file_name': args.file_name,
+        'dryrun': args.dryrun,
+    }
+
+    if args.resize:
+        param['resize_factor'] = args.resize
+
+    start_watcher(**param)
