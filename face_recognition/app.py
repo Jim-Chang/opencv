@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, make_response
 from reactor import send_notify
 from file_watcher import start_watcher
