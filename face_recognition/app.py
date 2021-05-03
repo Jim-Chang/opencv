@@ -19,6 +19,6 @@ def on_new_record():
     camera, date, filename = data[4], data[5], data[6]
     send_notify(f'發現動靜！\n日期：{date}\n檔名：{filename}\n辨識中...')
 
-    start_watcher(f'{VIDEO_SERVER_URL}{date}/{filename}', resize_factor=RESIZE_FACTOR)
+    start_watcher(remote_file_name=f'{VIDEO_SERVER_URL}{date}/{filename}', resize_factor=RESIZE_FACTOR)
 
     return make_response('', 200)

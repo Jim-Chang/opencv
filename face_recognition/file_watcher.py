@@ -50,14 +50,20 @@ def _arg_parse():
     return parser.parse_args()
 
 
-def start_watcher(file_name, dryrun=False, resize_factor=1):
-    WatcherHandler(file_name, dryrun, resize_factor).start()
+def start_watcher(local_file_name=None, remote_file_name=None, dryrun=False, resize_factor=1):
+    if local_file_name:
+        file_path = f'{VIDEO_FOLDER}/{file_name}'
+
+    if remote_file_name:
+        file_path = remote_file_name
+
+    WatcherHandler(file_path, dryrun, resize_factor).start()
 
 
 class WatcherHandler:
 
-    def __init__(self, file_name, dryrun=False, resize_factor=1):
-        self.file_path = f'{VIDEO_FOLDER}/{file_name}'
+    def __init__(self, file_path, dryrun=False, resize_factor=1):
+        self.file_path = file_path
         self.dryrun = dryrun
         self.resize_factor = resize_factor
 
@@ -134,7 +140,7 @@ if __name__ == '__main__':
     args = _arg_parse()
 
     param = {
-        'file_name': args.file_name,
+        'local_file_name': args.file_name,
         'dryrun': args.dryrun,
     }
 
