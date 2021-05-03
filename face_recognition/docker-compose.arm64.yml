@@ -1,11 +1,15 @@
 version: '2.3'
 services:
   home-watcher:
-    image: dorajim15/face-recognition-arm64:1.3.0
+    build:
+      context: .
+      dockerfile: Dockerfile.arm64
+    image: home-watcher:latest
     container_name: home-watcher
     restart: always
-    working_dir: /app
-    entrypoint: "python /app/home_watcher.py"
+    command: uwsgi --ini uwsgi.ini
+    ports:
+      - "9001:8080"
     networks:
       - home-watcher
     mem_limit: 500M
@@ -16,6 +20,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    environment:
+      RESIZE_FACTOR: 1
   
 networks:
   home-watcher:
