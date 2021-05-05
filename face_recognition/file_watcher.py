@@ -52,7 +52,7 @@ def _arg_parse():
 
 def start_watcher(local_file_name=None, remote_file_name=None, dryrun=False, resize_factor=1):
     if local_file_name:
-        file_path = f'{VIDEO_FOLDER}/{file_name}'
+        file_path = f'{VIDEO_FOLDER}/{local_file_name}'
 
     if remote_file_name:
         file_path = remote_file_name
