@@ -94,6 +94,7 @@ class MTWatcher(Watcher):
             t.join()
 
         self.cap.release()
+        self.detector.close()
 
         logging.info('All finish.')
 

@@ -85,7 +85,8 @@ class WatcherHandler:
             thread_num=4,
             event_func=self._detect_callback,
             is_need_force_stop_func=self._has_detect_authorize_face,
-            resize_factor=self.resize_factor
+            resize_factor=self.resize_factor,
+            detect_by='mediapipe',
         )
 
         _t = time.time()

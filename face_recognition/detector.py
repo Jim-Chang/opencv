@@ -7,6 +7,10 @@ import time
 from log import logging
 from utils import IMAGE_FOLDER, FACE_DAT_FILE
 import pickle
+try:
+    import mediapipe as mp
+except:
+    pass
 
 class Face(NamedTuple):
     name: str
@@ -89,10 +93,13 @@ def load_faces_from_img(exclude_filenames=[]) -> List[Face]:
 
 class FaceDetector:
 
-    def __init__(self, tolerance=0.6, debug=False):
+    def __init__(self, tolerance=0.6, debug=False, detect_by='face_recognition'):
         self.tolerance = tolerance
         self.debug = debug
         logging.info('loading known face encodes...')
+
+        if detect_by == 'mediapipe':
+            self.face_detection = mp.solutions.face_detection.FaceDetection(min_detection_confidence=0.5)
 
         _t = time.time()
 
@@ -118,11 +125,29 @@ class FaceDetector:
 
         return self._face_names
 
+    def _face_locations(img):
+        if self.detect_by == 'face_recognition':
+            return face_recognition.face_locations(img)
+
+        elif self.detect_by == 'mediapipe':
+            results = face_detection.process(img)
+            locs = []
+
+            for detection in results.detections:
+                box = detection.location_data.relative_bounding_box
+                x1, x2, y1, y2 = int(width * box.xmin), int(width * (box.xmin + box.width)), int(height * box.ymin), int(height * (box.ymin + box.height))
+                locs.append((y1, x2, y2, x1))
+
+            return locs
+
+        else:
+            raise Exception('detect method not support')
+
     # img: RGB
     def detect(self, img) -> List[MatchResult]:
         results = []
 
-        cur_face_locs = face_recognition.face_locations(img)
+        cur_face_locs = self._face_locations(img)
         if not cur_face_locs:
             return []
 
@@ -150,3 +175,7 @@ class FaceDetector:
                 ))
 
         return results
+
+    def close(self):
+        if self.detect_by == 'mediapipe':
+            self.face_detection.close()
