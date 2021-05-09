@@ -81,12 +81,11 @@ class WatcherHandler:
     def start(self):
         watcher = MTWatcher(
             url=self.file_path,
-            detector=FaceDetector(),
+            detector=FaceDetector(detect_by='face_recognition'),
             thread_num=4,
             event_func=self._detect_callback,
             is_need_force_stop_func=self._has_detect_authorize_face,
             resize_factor=self.resize_factor,
-            detect_by='mediapipe',
         )
 
         _t = time.time()
