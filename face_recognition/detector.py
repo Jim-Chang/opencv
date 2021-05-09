@@ -96,6 +96,7 @@ class FaceDetector:
     def __init__(self, tolerance=0.6, debug=False, detect_by='face_recognition'):
         self.tolerance = tolerance
         self.debug = debug
+        self.detect_by = detect_by
         logging.info('loading known face encodes...')
 
         if detect_by == 'mediapipe':
@@ -125,7 +126,7 @@ class FaceDetector:
 
         return self._face_names
 
-    def _face_locations(img):
+    def _face_locations(self, img):
         if self.detect_by == 'face_recognition':
             return face_recognition.face_locations(img)
 
