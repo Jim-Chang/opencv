@@ -1,0 +1,8 @@
+FROM ubuntu:20.04
+
+RUN apt-get update && \
+        apt-get upgrade -yqq && \
+        apt-get install -y build-essential libpq-dev python3.8-dev python3-pip && \
+        # alias
+        ln -s /usr/bin/python3.8 /usr/bin/python && \
+        ln -s /usr/bin/pip3 /usr/bin/pip

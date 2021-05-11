@@ -1,0 +1,11 @@
+FROM dorajim15/python:3.8-ubuntu20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get upgrade && \
+    apt-get install -y cmake protobuf-compiler wget
+
+RUN wget https://github.com/bazelbuild/bazel/releases/download/4.0.0/bazel-4.0.0-linux-arm64 -O /bin/bazel && \
+    chmod +x /bin/bazel && \
+    bazel

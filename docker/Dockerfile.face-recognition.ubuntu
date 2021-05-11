@@ -1,0 +1,3 @@
+FROM dorajim15/opencv-python:4.5.1.48_ubuntu
+
+RUN pip install face-recognition
