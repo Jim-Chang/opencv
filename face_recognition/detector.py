@@ -131,8 +131,13 @@ class FaceDetector:
             return face_recognition.face_locations(img)
 
         elif self.detect_by == 'mediapipe':
-            results = face_detection.process(img)
+            results = self.face_detection.process(img)
+
+            if not results.detections:
+                return []
+
             locs = []
+            height, width, _ = img.shape
 
             for detection in results.detections:
                 box = detection.location_data.relative_bounding_box
