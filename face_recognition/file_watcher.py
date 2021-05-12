@@ -7,7 +7,7 @@ import sys
 from typing import List
 from dataclasses import dataclass
 
-from watcher import MTWatcher
+from watcher import MTWatcher, Watcher
 from detector import FaceDetector, MatchResult
 from utils import im_nparr_2_bytes, load_meta_data
 from reactor import send_detected_notify_with_data_set, disable_motion_detector
@@ -47,25 +47,27 @@ def _arg_parse():
     parser.add_argument('file_name', type=str, help='image file')
     parser.add_argument('-d', '--dryrun', action='store_true', help='dry run')
     parser.add_argument('-r', '--resize', type=float, help='resize factor')
+    parser.add_argument('-a', '--algo', type=str, help='algorithm')
     return parser.parse_args()
 
 
-def start_watcher(local_file_name=None, remote_file_name=None, dryrun=False, resize_factor=1):
+def start_watcher(local_file_name=None, remote_file_name=None, dryrun=False, resize_factor=1, algo=None):
     if local_file_name:
         file_path = f'{VIDEO_FOLDER}/{local_file_name}'
 
     if remote_file_name:
         file_path = remote_file_name
 
-    WatcherHandler(file_path, dryrun, resize_factor).start()
+    WatcherHandler(file_path, dryrun, resize_factor, algo).start()
 
 
 class WatcherHandler:
 
-    def __init__(self, file_path, dryrun=False, resize_factor=1):
+    def __init__(self, file_path, dryrun=False, resize_factor=1, algo=None):
         self.file_path = file_path
         self.dryrun = dryrun
         self.resize_factor = resize_factor
+        self.algo = algo
 
         if self.dryrun:
             logging.warning('Run in DRYRUN mode')
@@ -79,15 +81,29 @@ class WatcherHandler:
         self.authorize_name_set = self.meta_data.get_authorize_name_set()
 
     def start(self):
-        watcher = MTWatcher(
-            url=self.file_path,
-            detector=FaceDetector(detect_by='face_recognition'),
-            thread_num=4,
-            event_func=self._detect_callback,
-            is_need_force_stop_func=self._has_detect_authorize_face,
-            resize_factor=self.resize_factor,
-        )
+        if self.algo == 'mediapipe':
+            logging.info('use mediapipe')
+            watcher = Watcher(
+                url=self.file_path,
+                detector=FaceDetector(detect_by='mediapipe'),
+                event_func=self._detect_callback,
+                is_need_force_stop_func=self._has_detect_authorize_face,
+                resize_factor=1,
+                # show_window=True
+            )
 
+        else:
+            logging.info('use face_recognition')
+            watcher = MTWatcher(
+                url=self.file_path,
+                detector=FaceDetector(detect_by='face_recognition'),
+                thread_num=4,
+                event_func=self._detect_callback,
+                is_need_force_stop_func=self._has_detect_authorize_face,
+                resize_factor=self.resize_factor,
+            )
+
+        
         _t = time.time()
         watcher.run()
         logging.info(f'Use {time.time() - _t} seconds')
@@ -142,6 +158,7 @@ if __name__ == '__main__':
     param = {
         'local_file_name': args.file_name,
         'dryrun': args.dryrun,
+        'algo': args.algo,
     }
 
     if args.resize:
