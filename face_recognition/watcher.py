@@ -25,7 +25,7 @@ class Watcher:
         self.resize_factor = resize_factor
         self.is_need_force_stop_func = is_need_force_stop_func
 
-        self.is_cam = self.url.isnumeric() or self.url.startswith('http')
+        self.is_cam = type(self.url) is int or self.url.startswith('http')
 
         self.cap = cv2.VideoCapture(url)
 

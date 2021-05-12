@@ -10,7 +10,7 @@ from detector import FaceDetector
 def main():
     watcher = Watcher(
         url=0,
-        detector=FaceDetector(),
+        detector=FaceDetector(detect_by='mediapipe'),
         show_window=True,
         resize_factor=0.25
     )
