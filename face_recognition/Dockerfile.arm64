@@ -8,3 +8,5 @@ RUN pip install requests flask uwsgi
 WORKDIR /app
 COPY . /app
 # RUN chown -R watcher /app
+
+RUN pip install /app/wheel/mediapipe-0.8.3.2-cp38-cp38-linux_aarch64.whl
