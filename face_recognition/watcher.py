@@ -7,15 +7,23 @@ from utils import draw_locations, show_to_window
 import threading
 import queue
 
+def resize_if_need(img, resize_factor):
+    if resize_factor:
+        height, width, _ = img.shape
+        return cv2.resize(img, (int(width * resize_factor), int(height * resize_factor)), interpolation=cv2.INTER_NEAREST)
+    
+    return img
+
 class Watcher:
 
-    def __init__(self, url, detector, draw_locations=True, show_window=False, event_func=None, resize_factor=None):
+    def __init__(self, url, detector, draw_locations=True, show_window=False, event_func=None, is_need_force_stop_func=None, resize_factor=None):
         self.url = url
         self.detector = detector
         self.draw_locations = draw_locations
         self.show_window = show_window
         self.event_func = event_func
         self.resize_factor = resize_factor
+        self.is_need_force_stop_func = is_need_force_stop_func
 
         self.is_cam = self.url.isnumeric() or self.url.startswith('http')
 
@@ -35,7 +43,7 @@ class Watcher:
                     logging.info('Video is end.')
                     break
 
-            small_img = self._resize_if_need(img)
+            small_img = resize_if_need(img, self.resize_factor)
 
             results = self.detector.detect(cv2.cvtColor(small_img, cv2.COLOR_BGR2RGB))
 
@@ -45,28 +53,38 @@ class Watcher:
             if self.show_window:
                 show_to_window(img)
 
-            if results and callable(self.event_func):
-                self.event_func(results, img)
+            if results:
+                logging.info(results)
+
+                if callable(self.event_func):
+                    self.event_func(results, img)
+
+                if callable(self.is_need_force_stop_func):
+                    if self.is_need_force_stop_func():
+                        logging.info('force_stop = True, stop load job')
+                        break
 
         self.cap.release()
         if self.show_window:
             cv2.destroyAllWindows()
 
-    def _resize_if_need(self, img):
-        if self.resize_factor:
-            height, width, _ = img.shape
-            return cv2.resize(img, (int(width*self.resize_factor), int(height*self.resize_factor)), interpolation=cv2.INTER_NEAREST)
-        
-        return img
 
-class MTWatcher(Watcher):
+class MTWatcher:
     img_queue_full_wait = 2  # sec
 
     def __init__(self, url, detector, thread_num=2, max_img_q=100, draw_locations=True, event_func=None, is_need_force_stop_func=None, resize_factor=None):
-        super().__init__(url, detector, draw_locations=draw_locations, event_func=event_func, resize_factor=resize_factor)
+        self.url = url
+        self.detector = detector
+        self.draw_locations = draw_locations
+        self.event_func = event_func
+        self.resize_factor = resize_factor
+        self.is_need_force_stop_func = is_need_force_stop_func
+
         self.thread_num = thread_num
         self.max_img_q = max_img_q
-        self.is_need_force_stop_func = is_need_force_stop_func
+
+        self.is_cam = self.url.isnumeric() or self.url.startswith('http')
+        self.cap = cv2.VideoCapture(url)
 
         self.queue = queue.Queue()
         self.lock = threading.Lock()
@@ -132,7 +150,7 @@ class MTWatcher(Watcher):
         logging.info(f'decode worker {index} finish.')
 
     def _decode(self, img):
-        small_img = self._resize_if_need(img)
+        small_img = resize_if_need(img, self.resize_factor)
         results = self.detector.detect(cv2.cvtColor(small_img, cv2.COLOR_BGR2RGB))
 
         if self.draw_locations:
