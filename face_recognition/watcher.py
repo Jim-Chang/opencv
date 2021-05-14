@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 from time import sleep
 from log import logging
 from detector import FaceDetector, load_img_2_rgb
@@ -145,7 +146,9 @@ class MTWatcher:
 
             if self.queue.qsize() > 0:
                 img = self.queue.get()
-                self._decode(img)
+                img_clone = np.copy(img)
+                del img
+                self._decode(img_clone)
         
         logging.info(f'decode worker {index} finish.')
 
