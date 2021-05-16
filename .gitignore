@@ -142,3 +142,6 @@ face_recognition/test_images/**
 face_recognition/log/**
 face_recognition/videos/**
 *.dat
+
+# pyenv
+.python-version
