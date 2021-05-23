@@ -1,0 +1,19 @@
+# motor define
+MOTOR_PWM_FREQ = 60
+
+MOTOR_L_F_PIN = 6
+MOTOR_L_B_PIN = 7
+MOTOR_R_F_PIN = 8
+MOTOR_R_B_PIN = 9
+
+# UART define
+UART_CHANNEL = 1
+UART_TX_PIN = 4
+UART_RX_PIN = 5
+
+UART_BAUDRAT = 115200
+
+# I2C define
+# I2C_0_SDA = 4
+# I2C_0_SCL = 5
+# I2C_0_FREQ = 400000
