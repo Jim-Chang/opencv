@@ -145,3 +145,4 @@ face_recognition/videos/**
 
 # pyenv
 .python-version
+jetbot/
