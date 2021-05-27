@@ -1,3 +1,6 @@
+# onboard led
+ONBOARD_LED_PIN = 25
+
 # motor define
 MOTOR_PWM_FREQ = 60
 
