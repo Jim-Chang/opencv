@@ -1,6 +1,9 @@
 # onboard led
 ONBOARD_LED_PIN = 25
 
+# config pin
+WAIT_JETSON_PIN = 28
+
 # motor define
 MOTOR_PWM_FREQ = 60
 
