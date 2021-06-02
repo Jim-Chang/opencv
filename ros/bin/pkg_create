@@ -1,0 +1,4 @@
+#!/bin/bash
+
+docker run -it --rm -v $PWD/../src:/src --workdir="/src" ros:foxy-ros-base ros2 pkg create --build-type ament_python $1
+sudo chown -R jim:jim $PWD/../src/$1
