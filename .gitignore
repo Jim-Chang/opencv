@@ -145,5 +145,11 @@ face_recognition/videos/**
 
 # pyenv
 .python-version
+
 jetbot/
 dataset/
+
+# ros
+ros/src/build/
+ros/src/install/
+ros/src/log/

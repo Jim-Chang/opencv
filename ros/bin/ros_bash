@@ -1,0 +1,3 @@
+#!/bin/bash
+
+docker run -it --rm -v $PWD/../src:/src --network ros --workdir="/src" ros:foxy-ros-base bash
