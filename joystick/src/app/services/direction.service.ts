@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Direction, DirectionResponse } from 'Types/direction.type';
 import { Observable, Subject, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, debounceTime } from 'rxjs/operators';
 import { JoystickEvent } from 'ngx-joystick';
 
 @Injectable({
@@ -15,9 +15,10 @@ export class DirectionService {
 
   constructor(private http: HttpClient) {
     this.eventSubject.pipe(
+      debounceTime(15),
       map(event => {
         return {
-          speed: Math.round(event.data.distance),
+          speed: Math.round(-event.data.instance.frontPosition.y),
           diff: Math.round(event.data.instance.frontPosition.x),
         }
       }),
@@ -33,7 +34,7 @@ export class DirectionService {
 
   sendCmd(direction: Direction): Observable<DirectionResponse> {
     console.log(direction);
-    return of({ result: 'ok' });
-    // return this.http.post<DirectionResponse>(this.directionApi, direction);
+    // return of({ result: 'ok' });
+    return this.http.post<DirectionResponse>(this.directionApi, direction);
   }
 }
