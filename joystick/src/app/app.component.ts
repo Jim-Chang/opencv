@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
+import { JoystickEvent, NgxJoystickComponent } from 'ngx-joystick';
+import { JoystickManagerOptions, JoystickOutputData } from 'nipplejs';
+import { DirectionService } from './services/direction.service';
 
 @Component({
   selector: 'app-root',
@@ -7,4 +10,25 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'joystick';
+
+  @ViewChild('semiJoystick') semiJoystick: NgxJoystickComponent;
+
+  semiOptions: JoystickManagerOptions = {
+    mode: 'semi',
+    catchDistance: 100,
+    color: 'purple',
+    size: 200,
+  };
+
+  semiOutputData: JoystickOutputData;
+
+
+  constructor(private directionService: DirectionService) {
+  }
+
+  onMoveSemi(event: JoystickEvent) {
+    this.semiOutputData = event.data;
+    this.directionService.receiveJoystickEvent(event);
+  }
+
 }

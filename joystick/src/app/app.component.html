@@ -1,1 +1,13 @@
 <router-outlet></router-outlet>
+
+<div class="container noselect">
+  <div class="zone">
+    <ngx-joystick #semiJoystick [options]="semiOptions" (move)="onMoveSemi($event)"></ngx-joystick>
+  </div>
+  <div *ngIf="semiOutputData" class="zone-absolute">
+    <div>frontXPos: {{ semiOutputData.instance.frontPosition.x | number:'2.5-5'}}</div>
+    <div>frontYPos: {{ semiOutputData.instance.frontPosition.y | number:'2.5-5'}}</div>
+    <div>direction: {{ semiOutputData.direction ? semiOutputData.direction.angle : ''}}</div>
+    <div>distance: {{ semiOutputData.distance }}</div>
+  </div>
+</div>
