@@ -15,5 +15,5 @@ def get_index_html():
 def recieve_direction_cmd():
     data = request.json
     publisher = app.joystick_cmd_publisher
-    publisher.pub_cmd(data['speed'], data['diff'])
+    publisher.pub_cmd(data.get('speed', 0) or 0, data.get('diff', 0) or 0)
     return jsonify({'result': 'ok'})

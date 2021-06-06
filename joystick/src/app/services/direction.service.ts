@@ -20,8 +20,8 @@ export class DirectionService {
         const y = -event.data.instance.frontPosition.y;
         const sign = y / Math.abs(y);
         return {
-          speed: Math.round(event.data.distance) * sign,
-          diff: Math.round(event.data.instance.frontPosition.x),
+          speed: Math.round(event.data.distance) * sign | 0,
+          diff: Math.round(event.data.instance.frontPosition.x) | 0,
         }
       }),
       switchMap(direction => this.sendCmd(direction))
