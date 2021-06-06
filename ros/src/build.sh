@@ -1,4 +1,4 @@
 #!/bin/bash
 
 rosdep install -i --from-path . -y
-colcon build
+colcon build --symlink-install
