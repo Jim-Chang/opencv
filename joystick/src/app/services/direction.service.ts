@@ -17,8 +17,10 @@ export class DirectionService {
     this.eventSubject.pipe(
       debounceTime(15),
       map(event => {
+        const y = -event.data.instance.frontPosition.y;
+        const sign = y / Math.abs(y);
         return {
-          speed: Math.round(-event.data.instance.frontPosition.y),
+          speed: Math.round(event.data.distance) * sign,
           diff: Math.round(event.data.instance.frontPosition.x),
         }
       }),
