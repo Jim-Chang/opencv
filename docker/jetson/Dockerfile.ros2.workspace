@@ -1,4 +1,4 @@
-FROM dorajim15/ros2_opencv_pytorch:latest
+FROM dorajim15/ros2_opencv_pytorch:base
 
 RUN apt-get install -y python3-markupsafe libffi-dev openssl libssl-dev
-RUN pip3 install flask uwsgi
+RUN pip3 install flask smbus

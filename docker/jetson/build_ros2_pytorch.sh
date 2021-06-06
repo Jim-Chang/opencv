@@ -20,7 +20,7 @@ EOF
 cp /etc/apt/trusted.gpg.d/jetson-ota-public.asc .
 
 # build docker image
-docker build -f Dockerfile.ros2.opencv.pytorch -t ros2_opencv_pytorch:latest .
+docker build -f Dockerfile.ros2.opencv.pytorch -t ros2_opencv_pytorch:base .
 
 # clean
 rm jetson-ota-public.asc
