@@ -30,8 +30,18 @@ export class DirectionService {
     });
   }
 
-  receiveJoystickEvent(event: JoystickEvent): void {
+  receiveMoveEvent(event: JoystickEvent): void {
     this.eventSubject.next(event);
+  }
+
+  receiveStopEvent(): void {
+    const direction = {
+      speed: 0,
+      diff: 0,
+    };
+    this.sendCmd(direction).subscribe(res => {
+      console.log(res);
+    });
   }
 
   sendCmd(direction: Direction): Observable<DirectionResponse> {

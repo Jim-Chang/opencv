@@ -26,9 +26,13 @@ export class AppComponent {
   constructor(private directionService: DirectionService) {
   }
 
-  onMoveSemi(event: JoystickEvent) {
+  onMove(event: JoystickEvent) {
     this.semiOutputData = event.data;
-    this.directionService.receiveJoystickEvent(event);
+    this.directionService.receiveMoveEvent(event);
+  }
+
+  onEnd(event: JoystickEvent) {
+    this.directionService.receiveStopEvent();
   }
 
 }

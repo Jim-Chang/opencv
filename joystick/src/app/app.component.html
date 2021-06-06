@@ -2,7 +2,8 @@
 
 <div class="container noselect">
   <div class="zone">
-    <ngx-joystick #semiJoystick [options]="semiOptions" (move)="onMoveSemi($event)"></ngx-joystick>
+    <ngx-joystick #semiJoystick [options]="semiOptions" (move)="onMove($event)" (end)="onEnd($event)">
+    </ngx-joystick>
   </div>
   <div *ngIf="semiOutputData" class="zone-absolute">
     <div>frontXPos: {{ semiOutputData.instance.frontPosition.x | number:'2.5-5'}}</div>
