@@ -1,0 +1,4 @@
+#!/bin/bash
+
+docker run -it --rm -v $PWD/../src:/src --workdir="/src" ros2_opencv_pytorch:workspace ros2 pkg create --build-type ament_cmake $1
+sudo chown -R jim:jim $PWD/../src/$1
