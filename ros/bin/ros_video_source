@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# For i2c
-# --device /dev/i2c-0  --device /dev/i2c-1
+# 安裝 ros_deep_learning
+# 直接啟動 video source node
+
 # For video
 # --device /dev/video0
 # For camera
@@ -10,6 +11,7 @@
 
 docker run -it --rm \
        -v $PWD/../src:/src \
+	   -v $HOME/Documents/ros_deep_learning:/ros_deep_learning \
 	   -v /tmp/argus_socket:/tmp/argus_socket \
 	   --ipc=host \
 	   --network host \
@@ -17,4 +19,5 @@ docker run -it --rm \
 	   --device /dev/i2c-0 \
 	   --device /dev/i2c-1 \
 	   --device /dev/video0 \
-	   ros2_opencv_pytorch:workspace "$@"
+	   --entrypoint="" \
+	   ros2_opencv_pytorch:workspace bash -c "source \"/opt/ros/\$ROS_DISTRO/setup.bash\" && source \"/ros_deep_learning/install/setup.sh\" && ros2 run ros_deep_learning video_source --ros-args -p resource:=\"csi://0\" -p width:=1280 -p height:=720 -p framerate:=10."
