@@ -2,5 +2,19 @@
 
 # For i2c
 # --device /dev/i2c-0  --device /dev/i2c-1
+# For video
+# --device /dev/video0
+# For camera
+# https://forums.developer.nvidia.com/t/jetpack-4-3-csi-camera-support-from-within-containers/111125
+# --ipc-host, -v /tmp/argus_socket:/tmp/argus_socket
 
-docker run -it --rm -v $PWD/../src:/src --network host --workdir="/src" --device /dev/i2c-0 --device /dev/i2c-1 ros2_opencv_pytorch:workspace "$@"
+docker run -it --rm \
+       -v $PWD/../src:/src \
+	   -v /tmp/argus_socket:/tmp/argus_socket \
+	   --ipc=host \
+	   --network host \
+	   --workdir="/src" \
+	   --device /dev/i2c-0 \
+	   --device /dev/i2c-1 -\
+	   -device /dev/video0 \
+	   ros2_opencv_pytorch:workspace "$@"

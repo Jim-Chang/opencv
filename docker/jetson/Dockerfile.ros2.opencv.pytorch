@@ -155,3 +155,18 @@ RUN git clone -b ${TORCHVISION_VERSION} https://github.com/pytorch/vision torchv
 RUN apt-get update && \
     apt-get install -y python3-matplotlib
 RUN pip3 install tqdm cython pycocotools
+
+
+# -------------------
+# jetson-interface
+# -------------------
+RUN git clone --recursive https://github.com/dusty-nv/jetson-inference && \
+    cd jetson-inference && \
+    sed -i 's/nvcaffe_parser/nvparsers/g' CMakeLists.txt && \
+    mkdir build && \
+    cd build && \
+    cmake ../ && \
+    make -j4 && \
+    make install && \
+    ldconfig && \
+    rm -Rf /jetson-inference
