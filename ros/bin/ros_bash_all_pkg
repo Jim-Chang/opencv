@@ -11,6 +11,7 @@
 
 docker run -it --rm \
        -v $PWD/../src:/src \
+	   -v $HOME/Documents/data:/data \
 	   -v $HOME/Documents/ros_deep_learning:/ros_deep_learning \
 	   -v /tmp/argus_socket:/tmp/argus_socket \
 	   --ipc=host \

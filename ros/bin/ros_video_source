@@ -20,4 +20,4 @@ docker run -it --rm \
 	   --device /dev/i2c-1 \
 	   --device /dev/video0 \
 	   --entrypoint="" \
-	   ros2_opencv_pytorch:workspace bash -c "source \"/opt/ros/\$ROS_DISTRO/setup.bash\" && source \"/ros_deep_learning/install/setup.sh\" && ros2 run ros_deep_learning video_source --ros-args -p resource:=\"csi://0\" -p width:=1280 -p height:=720 -p framerate:=10."
+	   ros2_opencv_pytorch:workspace bash -c "source \"/opt/ros/\$ROS_DISTRO/setup.bash\" && source \"/ros_deep_learning/install/setup.sh\" && ros2 run ros_deep_learning video_source --ros-args -p resource:=\"csi://0\" -p width:=1280 -p height:=720 -p framerate:=24."
