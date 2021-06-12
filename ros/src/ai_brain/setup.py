@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
              'img_receive = ai_brain.image_receive_node:main',
+             'data_collect = ai_brain.data_collector:main',
         ],
     },
 )
