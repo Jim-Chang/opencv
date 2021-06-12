@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, Response
 
 app = Flask(
     __name__,
@@ -11,9 +11,17 @@ app = Flask(
 def get_index_html():
     return render_template('index.html')
 
+@app.route("/stream", methods=['GET'])
+def get_stream_html():
+    return render_template('stream.html')
+
 @app.route("/api/direction", methods=['POST'])
 def recieve_direction_cmd():
     data = request.json
     publisher = app.joystick_cmd_publisher
     publisher.pub_cmd(data.get('speed', 0) or 0, data.get('diff', 0) or 0)
     return jsonify({'result': 'ok'})
+
+@app.route('/api/stream')
+def video_stream():
+    return Response(app.image_receiver.gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
