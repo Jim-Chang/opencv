@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit, ElementRef } from '@angular/core';
 import { JoystickEvent, NgxJoystickComponent } from 'ngx-joystick';
 import { JoystickManagerOptions, JoystickOutputData } from 'nipplejs';
 import { DirectionService } from './services/direction.service';
@@ -14,7 +14,7 @@ export class AppComponent {
   @ViewChild('semiJoystick') semiJoystick: NgxJoystickComponent;
 
   semiOptions: JoystickManagerOptions = {
-    mode: 'semi',
+    mode: 'dynamic',
     catchDistance: 100,
     color: 'purple',
     size: 200,
