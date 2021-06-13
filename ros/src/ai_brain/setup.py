@@ -23,6 +23,7 @@ setup(
              'img_receive = ai_brain.image_receive_node:main',
              'data_collect = ai_brain.data_collector:main',
              'web_server = ai_brain.web_control.serve:main',
+             'motor = ai_brain.motor.serve:main',
         ],
     },
 )
