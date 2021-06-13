@@ -1,5 +1,6 @@
 from uuid import uuid1
 from PIL import Image
+from io import BytesIO
 import numpy as np
 import os
 import json
@@ -24,7 +25,17 @@ def get_im_file_path(folder_path, key):
 
 def save_image(image, file_path):
     with open(file_path, 'wb') as f:
-        Image.fromarray(image).save(f, 'jpeg')
+        Image.fromarray(image).save(f, 'jpeg', quality=70)
+
+
+def save_img_2_bytes(image, resize=None):
+    bytes_io = BytesIO()
+    img = Image.fromarray(image)
+    if resize:
+        w, h = img.size
+        img.thumbnail((int(w * resize), int(h * resize)))
+    img.save(bytes_io, 'jpeg', quality=30)
+    return bytes_io.getvalue()
 
 
 def im_np_2_im_msg(im_np):
