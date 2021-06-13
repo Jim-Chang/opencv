@@ -1,6 +1,10 @@
 <router-outlet></router-outlet>
 
 <div class="container noselect">
+  <div class="stream">
+    <img src="/api/stream">
+    <!-- <img src="https://dummyimage.com/600x400/444/000"> -->
+  </div>
   <div class="zone">
     <ngx-joystick #semiJoystick [options]="semiOptions" (move)="onMove($event)" (end)="onEnd($event)">
     </ngx-joystick>
