@@ -21,14 +21,19 @@ export class DirectionService {
         const y = -event.data.instance.frontPosition.y;
         const sign = y / Math.abs(y);
         return {
-          speed: Math.round(event.data.distance) * sign | 0,
-          diff: Math.round(event.data.instance.frontPosition.x) | 0,
+          speed: this.roundValue(event.data.distance) * sign | 0,
+          diff: this.roundValue(event.data.instance.frontPosition.x) / 2 | 0,
         }
       }),
       switchMap(direction => this.sendMoveCmd(direction))
     ).subscribe(res => {
       console.log(res);
     });
+  }
+
+  private roundValue(value: number): number {
+    const sign = value / Math.abs(value);
+    return Math.floor(Math.abs(value) / 10) * 10 * sign;
   }
 
   receiveMoveEvent(event: JoystickEvent): void {
