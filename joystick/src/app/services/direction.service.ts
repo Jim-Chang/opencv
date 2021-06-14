@@ -10,6 +10,7 @@ import { JoystickEvent } from 'ngx-joystick';
 })
 export class DirectionService {
 
+  private recApi = '/api/rec';
   private directionApi = '/api/direction';
   private eventSubject = new Subject<JoystickEvent>();
 
@@ -24,7 +25,7 @@ export class DirectionService {
           diff: Math.round(event.data.instance.frontPosition.x) | 0,
         }
       }),
-      switchMap(direction => this.sendCmd(direction))
+      switchMap(direction => this.sendMoveCmd(direction))
     ).subscribe(res => {
       console.log(res);
     });
@@ -39,14 +40,20 @@ export class DirectionService {
       speed: 0,
       diff: 0,
     };
-    this.sendCmd(direction).subscribe(res => {
+    this.sendMoveCmd(direction).subscribe(res => {
       console.log(res);
     });
   }
 
-  sendCmd(direction: Direction): Observable<DirectionResponse> {
+  sendMoveCmd(direction: Direction): Observable<DirectionResponse> {
     console.log(direction);
     // return of({ result: 'ok' });
     return this.http.post<DirectionResponse>(this.directionApi, direction);
+  }
+
+  sendRecCmd(isRec: boolean): void {
+    console.log(`Send rec cmd: {isRec}`);
+    const params = new HttpParams().append('status', isRec.toString());
+    this.http.get<DirectionResponse>(this.recApi, { params }).subscribe((result) => console.log(result));
   }
 }

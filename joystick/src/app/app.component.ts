@@ -22,6 +22,7 @@ export class AppComponent {
 
   semiOutputData: JoystickOutputData;
 
+  recStatus = false;
 
   constructor(private directionService: DirectionService) {
   }
@@ -33,6 +34,15 @@ export class AppComponent {
 
   onEnd(event: JoystickEvent) {
     this.directionService.receiveStopEvent();
+  }
+
+  getRecStatusText(): string {
+    return this.recStatus ? 'REC' : 'Waiting'
+  }
+
+  onClickRecBtn(): void {
+    this.recStatus = !this.recStatus;
+    this.directionService.sendRecCmd(this.recStatus);
   }
 
 }

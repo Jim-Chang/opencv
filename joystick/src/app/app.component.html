@@ -16,3 +16,9 @@
     <div>distance: {{ semiOutputData.distance }}</div>
   </div>
 </div>
+
+<div class="btn-container">
+  <span [ngClass]="{'rec': recStatus}">{{getRecStatusText()}}</span>
+  <button *ngIf="!recStatus" (click)="onClickRecBtn()">Start Rec</button>
+  <button *ngIf="recStatus" (click)="onClickRecBtn()">Stop Rec</button>
+</div>
