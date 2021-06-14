@@ -4,6 +4,7 @@ from io import BytesIO
 import numpy as np
 import os
 import json
+import cv2
 
 from sensor_msgs.msg import Image as ImageMsg
 
@@ -51,7 +52,8 @@ def im_np_2_im_msg(im_np):
 
 def im_msg_2_im_np(msg):
     data = np.asarray(msg.data)
-    return np.reshape(data, (msg.height, msg.width, 3))
+    img = np.reshape(data, (msg.height, msg.width, 3))
+    return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 
 def load_motor_im_map(file_path):
