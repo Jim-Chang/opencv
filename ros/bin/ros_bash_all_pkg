@@ -3,6 +3,8 @@
 # 安裝 ros_deep_learning, my pkg
 # 進入 bash
 
+# For i2c
+# --device /dev/i2c-0  --device /dev/i2c-1
 # For video
 # --device /dev/video0
 # For camera
