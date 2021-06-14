@@ -6,6 +6,7 @@ from uuid import uuid1
 
 from sensor_msgs.msg import Image as ImageMsg
 from jbot_msgs.msg import Motor as MotorMsg
+from std_msgs.msg import String
 
 from PIL import Image
 from uuid import uuid1
@@ -27,6 +28,7 @@ class DataCollectorNode(Node):
 
         self.last_motor_speed = 0
         self.last_motor_diff = 0
+        self.is_rec = False
 
         self.motor_im_map = load_motor_im_map(self.motor_im_map_fpath)
 
@@ -34,22 +36,28 @@ class DataCollectorNode(Node):
         # Image subscriber from cam2image
         self.im_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.im_cb, 10)
         self.motor_ctrl_sub = self.create_subscription(MotorMsg, 'motor_ctrl', self.motor_ctrl_cb, 10)
+        self.collector_ctrl_sub = self.create_subscription(String, 'data_collector_ctrl', self.collector_ctrl_cb, 10)
 
-        print('data collector start...')
+        print('data collector init, wait ctrl cmd to start rec...')
 
     def im_cb(self, msg):
-        key = get_key()
-        im_file_path = get_im_file_path(self.im_folder_path, key)
+        if self.is_rec:
+            key = get_key()
+            im_file_path = get_im_file_path(self.im_folder_path, key)
 
-        img = im_msg_2_im_np(msg)
-        save_image(img, im_file_path)
+            img = im_msg_2_im_np(msg)
+            save_image(img, im_file_path)
 
-        self.motor_im_map[key] = [self.last_motor_speed, self.last_motor_diff]
-        save_motor_im_map(self.motor_im_map_fpath, self.motor_im_map)
+            self.motor_im_map[key] = [self.last_motor_speed, self.last_motor_diff]
+            save_motor_im_map(self.motor_im_map_fpath, self.motor_im_map)
 
     def motor_ctrl_cb(self, msg):
         self.last_motor_speed = msg.speed
         self.last_motor_diff = msg.diff
+
+    def collector_ctrl_cb(self, msg):
+        print(f'Receive collector ctrl: {msg.data}')
+        self.is_rec = msg.data == 'true'
 
 
 def main(args=None):

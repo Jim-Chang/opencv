@@ -19,9 +19,17 @@ def get_stream_html():
 def recieve_direction_cmd():
     data = request.json
     publisher = app.joystick_cmd_publisher
-    publisher.pub_cmd(data.get('speed', 0) or 0, data.get('diff', 0) or 0)
+    publisher.pub_motor_cmd(data.get('speed', 0) or 0, data.get('diff', 0) or 0)
     return jsonify({'result': 'ok'})
 
 @app.route('/api/stream')
 def video_stream():
     return Response(app.image_receiver.gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/api/rec')
+def set_rec_status():
+    is_rec = request.args.get('status')
+
+    publisher = app.joystick_cmd_publisher
+    publisher.pub_rec_cmd(is_rec)
+    return jsonify({'result': 'ok'})
