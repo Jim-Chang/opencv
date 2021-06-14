@@ -1,6 +1,6 @@
 class PicoMotor:
     
-    _MIN_SPEED = 50
+    _MIN_SPEED = 70
     _MAX_SPEED = 100
     _MIN_DIFF = 10
     
@@ -62,6 +62,7 @@ class PicoMotor:
         '''
         print(f'[PicoMotor]: go_straight, speed={speed}')
         speed = self._bounding_speed(speed)
+        print(f'[PicoMotor]: final => speed={speed}')
         self._send(speed, speed)
         
     def go_turn(self, speed, diff):
@@ -80,6 +81,7 @@ class PicoMotor:
         
         speed = self._bounding_speed(speed)
         diff_speed = self._bounding_speed(self._get_diff_speed(speed, abs(diff)))
+        print(f'[PicoMotor]: final => speed={speed}, diff_speed={diff_speed}')
         
         if self._is_need_change_to_rotate(speed, diff_speed):
             if (speed > 0 and diff >= 0) or (speed < 0 and diff < 0):
