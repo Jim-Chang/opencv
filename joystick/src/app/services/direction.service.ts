@@ -12,19 +12,16 @@ export class DirectionService {
 
   private recApi = '/api/rec';
   private directionApi = '/api/direction';
-  private eventSubject = new Subject<JoystickEvent>();
+  private eventSubject = new Subject<Direction>();
+
+  lastDirection: Direction = {
+    speed: 0,
+    diff: 0,
+  };
 
   constructor(private http: HttpClient) {
     this.eventSubject.pipe(
       debounceTime(15),
-      map(event => {
-        const y = -event.data.instance.frontPosition.y;
-        const sign = y / Math.abs(y);
-        return {
-          speed: this.roundValue(event.data.distance) * sign | 0,
-          diff: this.roundValue(event.data.instance.frontPosition.x) / 2 | 0,
-        }
-      }),
       switchMap(direction => this.sendMoveCmd(direction))
     ).subscribe(res => {
       console.log(res);
@@ -36,18 +33,30 @@ export class DirectionService {
     return Math.floor(Math.abs(value) / 10) * 10 * sign;
   }
 
-  receiveMoveEvent(event: JoystickEvent): void {
-    this.eventSubject.next(event);
+  private getSign(value: number): number {
+    return value / Math.abs(value);
   }
 
-  receiveStopEvent(): void {
-    const direction = {
-      speed: 0,
-      diff: 0,
-    };
-    this.sendMoveCmd(direction).subscribe(res => {
-      console.log(res);
-    });
+  receiveMotorMoveEvent(event: JoystickEvent): void {
+    const sign = this.getSign(-event.data.instance.frontPosition.y);
+    this.lastDirection.speed = this.roundValue(event.data.distance) * sign | 0;
+    this.eventSubject.next(this.lastDirection);
+  }
+
+  receiveSteerMoveEvent(event: JoystickEvent): void {
+    const sign = this.getSign(event.data.instance.frontPosition.x);
+    this.lastDirection.diff = this.roundValue(event.data.distance) * sign / 2 | 0;
+    this.eventSubject.next(this.lastDirection);
+  }
+
+  receiveMotorEndEvent(): void {
+    this.lastDirection.speed = 0
+    this.eventSubject.next(this.lastDirection);
+  }
+
+  receiveSteerEndEvent(): void {
+    this.lastDirection.diff = 0
+    this.eventSubject.next(this.lastDirection);
   }
 
   sendMoveCmd(direction: Direction): Observable<DirectionResponse> {

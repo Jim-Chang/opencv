@@ -6,14 +6,22 @@
     <!-- <img src="https://dummyimage.com/600x400/444/000"> -->
   </div>
   <div class="zone">
-    <ngx-joystick #semiJoystick [options]="semiOptions" (move)="onMove($event)" (end)="onEnd($event)">
-    </ngx-joystick>
+    <div class="joystick left">
+      <ngx-joystick #semiJoystick [options]="semiOptions" (move)="onMotorMove($event)" (end)="onMotorEnd($event)">
+      </ngx-joystick>
+    </div>
+    <div class="joystick right">
+      <ngx-joystick #semiJoystick [options]="semiOptions" (move)="onSteerMove($event)" (end)="onSteerEnd($event)">
+      </ngx-joystick>
+    </div>
   </div>
   <div *ngIf="semiOutputData" class="zone-absolute">
     <div>frontXPos: {{ semiOutputData.instance.frontPosition.x | number:'2.5-5'}}</div>
     <div>frontYPos: {{ semiOutputData.instance.frontPosition.y | number:'2.5-5'}}</div>
     <div>direction: {{ semiOutputData.direction ? semiOutputData.direction.angle : ''}}</div>
     <div>distance: {{ semiOutputData.distance }}</div>
+    <div>speed: {{directionService.lastDirection.speed}}</div>
+    <div>diff: {{directionService.lastDirection.diff}}</div>
   </div>
 </div>
 

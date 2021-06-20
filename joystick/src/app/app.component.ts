@@ -24,16 +24,25 @@ export class AppComponent {
 
   recStatus = false;
 
-  constructor(private directionService: DirectionService) {
+  constructor(public directionService: DirectionService) {
   }
 
-  onMove(event: JoystickEvent) {
+  onMotorMove(event: JoystickEvent) {
     this.semiOutputData = event.data;
-    this.directionService.receiveMoveEvent(event);
+    this.directionService.receiveMotorMoveEvent(event);
   }
 
-  onEnd(event: JoystickEvent) {
-    this.directionService.receiveStopEvent();
+  onSteerMove(event: JoystickEvent) {
+    this.semiOutputData = event.data;
+    this.directionService.receiveSteerMoveEvent(event);
+  }
+
+  onMotorEnd(event: JoystickEvent) {
+    this.directionService.receiveMotorEndEvent();
+  }
+
+  onSteerEnd(event: JoystickEvent) {
+    this.directionService.receiveSteerEndEvent();
   }
 
   getRecStatusText(): string {
