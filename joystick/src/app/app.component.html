@@ -29,4 +29,5 @@
   <span [ngClass]="{'rec': recStatus}">{{getRecStatusText()}}</span>
   <button *ngIf="!recStatus" (click)="onClickRecBtn()">Start Rec</button>
   <button *ngIf="recStatus" (click)="onClickRecBtn()">Stop Rec</button>
+  <button (click)="onClickScreenBtn()">Toggle Fullscreen</button>
 </div>
