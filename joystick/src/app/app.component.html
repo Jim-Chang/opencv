@@ -20,6 +20,7 @@
     <div>frontYPos: {{ semiOutputData.instance.frontPosition.y | number:'2.5-5'}}</div>
     <div>direction: {{ semiOutputData.direction ? semiOutputData.direction.angle : ''}}</div>
     <div>distance: {{ semiOutputData.distance }}</div>
+    <div>worker ready: {{directionService.isWorkerReady}}</div>
     <div>speed: {{directionService.lastDirection.speed}}</div>
     <div>diff: {{directionService.lastDirection.diff}}</div>
   </div>

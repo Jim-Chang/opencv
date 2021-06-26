@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Direction, DirectionResponse } from 'Types/direction.type';
-import { Observable, Subject, of } from 'rxjs';
-import { map, switchMap, debounceTime } from 'rxjs/operators';
 import { JoystickEvent } from 'ngx-joystick';
 
 @Injectable({
@@ -11,26 +9,34 @@ import { JoystickEvent } from 'ngx-joystick';
 export class DirectionService {
 
   private recApi = '/api/rec';
-  private directionApi = '/api/direction';
-  private eventSubject = new Subject<Direction>();
+
+  private worker: Worker;
+  private SPEED_MIN = 50;
+  private SPEED_MAX = 100;
+  private SPEED_STEP = 5;
+  private STEER_MIN = 0;
+  private STEER_MAX = 50;
+  private STEER_STEP = 5;
 
   lastDirection: Direction = {
     speed: 0,
     diff: 0,
   };
+  isWorkerReady = false;
 
   constructor(private http: HttpClient) {
-    this.eventSubject.pipe(
-      debounceTime(15),
-      switchMap(direction => this.sendMoveCmd(direction))
-    ).subscribe(res => {
-      console.log(res);
-    });
+    if (typeof Worker !== 'undefined') {
+      this.worker = new Worker(new URL('./direction.worker', import.meta.url));
+      this.isWorkerReady = true;
+    } else {
+      console.log('not support web worker.')
+    }
   }
 
-  private roundValue(value: number): number {
+  private calculateValue(value: number, min: number, max: number, step: number): number {
     const sign = value / Math.abs(value);
-    return Math.floor(Math.abs(value) / 10) * 10 * sign;
+    const scaleValue = Math.abs(value) / 100 * (max - min) + min;
+    return Math.floor(scaleValue / step) * step * sign;
   }
 
   private getSign(value: number): number {
@@ -39,35 +45,45 @@ export class DirectionService {
 
   receiveMotorMoveEvent(event: JoystickEvent): void {
     const sign = this.getSign(-event.data.instance.frontPosition.y);
-    this.lastDirection.speed = this.roundValue(event.data.distance) * sign | 0;
-    this.eventSubject.next(this.lastDirection);
+
+    const speed = this.calculateValue(event.data.distance, this.SPEED_MIN, this.SPEED_MAX, this.SPEED_STEP) * sign | 0;
+    if (speed != this.lastDirection.speed) {
+      this.lastDirection.speed = speed;
+      this.sendMoveCmdByWorker(this.lastDirection);
+    }
   }
 
   receiveSteerMoveEvent(event: JoystickEvent): void {
     const sign = this.getSign(event.data.instance.frontPosition.x);
-    this.lastDirection.diff = this.roundValue(event.data.distance) * sign / 2 | 0;
-    this.eventSubject.next(this.lastDirection);
+
+    const diff = this.calculateValue(event.data.distance, this.STEER_MIN, this.STEER_MAX, this.STEER_STEP) * sign | 0;
+    if (diff != this.lastDirection.diff) {
+      this.lastDirection.diff = diff;
+      this.sendMoveCmdByWorker(this.lastDirection);
+    }
   }
 
   receiveMotorEndEvent(): void {
-    this.lastDirection.speed = 0
-    this.eventSubject.next(this.lastDirection);
+    if (this.lastDirection.speed != 0) {
+      this.lastDirection.speed = 0;
+      this.sendMoveCmdByWorker(this.lastDirection);
+    }
   }
 
   receiveSteerEndEvent(): void {
-    this.lastDirection.diff = 0
-    this.eventSubject.next(this.lastDirection);
-  }
-
-  sendMoveCmd(direction: Direction): Observable<DirectionResponse> {
-    console.log(direction);
-    // return of({ result: 'ok' });
-    return this.http.post<DirectionResponse>(this.directionApi, direction);
+    if (this.lastDirection.diff != 0) {
+      this.lastDirection.diff = 0;
+      this.sendMoveCmdByWorker(this.lastDirection);
+    }
   }
 
   sendRecCmd(isRec: boolean): void {
     console.log(`Send rec cmd: {isRec}`);
     const params = new HttpParams().append('status', isRec.toString());
     this.http.get<DirectionResponse>(this.recApi, { params }).subscribe((result) => console.log(result));
+  }
+
+  private sendMoveCmdByWorker(direction: Direction): void {
+    this.worker.postMessage(direction);
   }
 }
