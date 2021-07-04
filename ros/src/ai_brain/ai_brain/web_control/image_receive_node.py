@@ -4,7 +4,8 @@ from PIL import Image
 from io import BytesIO
 
 from sensor_msgs.msg import Image as ImageMsg
-from ai_brain.utils import im_msg_2_im_np, save_img_2_bytes
+from jbot_msgs.msg import Motor as MotorMsg
+from ai_brain.utils import im_msg_2_im_np, save_img_2_bytes, write_text_on_im
 
 
 class ImageReceiveNode(Node):
@@ -13,10 +14,15 @@ class ImageReceiveNode(Node):
         super().__init__('joystick__image_receive')
         
         self.img_msg = None
-        self.sub = self.create_subscription(ImageMsg, 'video_source/raw', self.img_cb, 10)
+        self.predict_motor_msg = None
+        self._img_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.img_cb, 10)
+        self._auto_drive_predict_sub = self.create_subscription(MotorMsg, 'auto_drive_predict', self.auto_drive_predict, 10)
 
     def img_cb(self, msg):
         self.img_msg = msg
+
+    def auto_drive_predict(self, msg):
+        self.predict_motor_msg = msg
         
     def gen_frames(self):
         while True:
@@ -26,4 +32,8 @@ class ImageReceiveNode(Node):
 
     def _get_img_bytes(self):
         img = im_msg_2_im_np(self.img_msg)
+
+        if self.predict_motor_msg:
+            write_text_on_im(img, f'AI diff: {self.predict_motor_msg.diff}')
+
         return save_img_2_bytes(img, resize=0.5)

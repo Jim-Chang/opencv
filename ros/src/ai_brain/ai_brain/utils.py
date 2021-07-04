@@ -70,3 +70,7 @@ def save_motor_im_map(file_path, data_map):
     with open(file_path, 'w') as f:
         data = json.dumps(data_map)
         f.write(data)
+
+
+def write_text_on_im(img, text, position=(10, 50), color=(0, 200, 100)):
+    cv2.putText(img, text, position, cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
