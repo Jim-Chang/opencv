@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# 安裝 ros_deep_learning, my pkg
+# 進入 bash
+
+# For i2c
+# --device /dev/i2c-0  --device /dev/i2c-1
+# For video
+# --device /dev/video0
+# For camera
+# https://forums.developer.nvidia.com/t/jetpack-4-3-csi-camera-support-from-within-containers/111125
+# --ipc-host, -v /tmp/argus_socket:/tmp/argus_socket
+
+docker run -it --rm \
+       -v $PWD/../src:/src \
+	   -v $HOME/Documents/data:/data \
+	   -v $HOME/Documents/ros_deep_learning:/ros_deep_learning \
+	   -v /tmp/argus_socket:/tmp/argus_socket \
+	   --ipc=host \
+	   --network host \
+	   --workdir="/src" \
+	   --device /dev/i2c-0 \
+	   --device /dev/i2c-1 \
+	   --device /dev/video0 \
+	   --entrypoint="" \
+	   ros2_opencv_pytorch:workspace bash -c "source \"/opt/ros/\$ROS_DISTRO/setup.bash\" && source \"/ros_deep_learning/install/setup.sh\" && source \"/src/install/setup.sh\" && ros2 run ai_brain auto_drive"
