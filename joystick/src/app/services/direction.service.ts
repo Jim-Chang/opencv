@@ -9,6 +9,7 @@ import { JoystickEvent } from 'ngx-joystick';
 export class DirectionService {
 
   private recApi = '/api/rec';
+  private autoDriveApi = '/api/auto_drive';
 
   private worker: Worker;
   private SPEED_MIN = 50;
@@ -81,6 +82,12 @@ export class DirectionService {
     console.log(`Send rec cmd: {isRec}`);
     const params = new HttpParams().append('status', isRec.toString());
     this.http.get<DirectionResponse>(this.recApi, { params }).subscribe((result) => console.log(result));
+  }
+
+  sendAutoDriveCmd(isEnable: boolean): void {
+    console.log(`Send auto drive cmd: {isEnable}`);
+    const params = new HttpParams().append('status', isEnable.toString());
+    this.http.get<DirectionResponse>(this.autoDriveApi, { params }).subscribe((result) => console.log(result));
   }
 
   private sendMoveCmdByWorker(direction: Direction): void {

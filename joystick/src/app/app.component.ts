@@ -25,6 +25,7 @@ export class AppComponent implements OnInit {
   semiOutputData: JoystickOutputData;
 
   recStatus = false;
+  autoDriveStatus = false;
   private isFullscreen = false;
 
   constructor(public directionService: DirectionService, @Inject(DOCUMENT) private document: any) {
@@ -52,13 +53,30 @@ export class AppComponent implements OnInit {
     this.directionService.receiveSteerEndEvent();
   }
 
-  getRecStatusText(): string {
+  get recStatusText(): string {
     return this.recStatus ? 'REC' : 'Waiting'
+  }
+
+  get recBtnText(): string {
+    return this.recStatus ? 'Stop Rec' : 'Start Rec';
+  }
+
+  get autoDriveStatusText(): string {
+    return this.autoDriveStatus ? 'AI' : 'Manual';
+  }
+
+  get autoDriveBtnText(): string {
+    return this.autoDriveStatus ? 'Stop AutoDrive' : 'Start AutoDrive';
   }
 
   onClickRecBtn(): void {
     this.recStatus = !this.recStatus;
     this.directionService.sendRecCmd(this.recStatus);
+  }
+
+  onClickAutoDriveBtn(): void {
+    this.autoDriveStatus = !this.autoDriveStatus;
+    this.directionService.sendAutoDriveCmd(this.autoDriveStatus);
   }
 
   onClickScreenBtn(): void {

@@ -27,8 +27,17 @@
 </div>
 
 <div class="btn-container">
-  <span [ngClass]="{'rec': recStatus}">{{getRecStatusText()}}</span>
-  <button *ngIf="!recStatus" (click)="onClickRecBtn()">Start Rec</button>
-  <button *ngIf="recStatus" (click)="onClickRecBtn()">Stop Rec</button>
-  <button (click)="onClickScreenBtn()">Toggle Fullscreen</button>
+  <div class="btn-item">
+    <button (click)="onClickScreenBtn()">Toggle Fullscreen</button>
+  </div>
+
+  <div class="btn-item">
+    <button (click)="onClickRecBtn()">{{recBtnText}}</button>
+    <span [ngClass]="{'red': recStatus}">{{recStatusText}}</span>
+  </div>
+
+  <div class="btn-item">
+    <button (click)="onClickAutoDriveBtn()">{{autoDriveBtnText}}</button>
+    <span [ngClass]="{'red': autoDriveStatus}">{{autoDriveStatusText}}</span>
+  </div>
 </div>
