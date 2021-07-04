@@ -11,6 +11,7 @@ class WebJoystickCommandNode(Node):
         super().__init__('web_joystick_cmd_node')
         self._motor_ctrl_pub = self.create_publisher(MotorMsg, 'motor_ctrl', 10)
         self._rec_ctrl_pub = self.create_publisher(String, 'data_collector_ctrl', 10)
+        self._auto_drive_ctrl_pub = self.create_publisher(String, 'auto_drive_ctrl', 10)
         
     def pub_motor_cmd(self, speed, diff):
         msg = MotorMsg()
@@ -22,6 +23,11 @@ class WebJoystickCommandNode(Node):
         msg = String()
         msg.data = str(is_rec)
         self._rec_ctrl_pub.publish(msg)
+
+    def pub_auto_drive_cmd(self, is_enable):
+        msg = String()
+        msg.data = str(is_enable)
+        self._auto_drive_ctrl_pub.publish(msg)
         
         
         

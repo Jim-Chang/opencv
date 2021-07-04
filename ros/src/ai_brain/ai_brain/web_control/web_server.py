@@ -33,3 +33,11 @@ def set_rec_status():
     publisher = app.joystick_cmd_publisher
     publisher.pub_rec_cmd(is_rec)
     return jsonify({'result': 'ok'})
+
+@app.route('/api/auto_drive')
+def set_auto_drive_status():
+    is_rec = request.args.get('status')
+
+    publisher = app.joystick_cmd_publisher
+    publisher.pub_auto_drive_cmd(is_rec)
+    return jsonify({'result': 'ok'})
