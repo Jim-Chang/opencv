@@ -1,3 +1,5 @@
+import sys
+import logging
 from uuid import uuid1
 from PIL import Image
 from io import BytesIO
@@ -7,6 +9,11 @@ import json
 import cv2
 
 from sensor_msgs.msg import Image as ImageMsg
+
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.DEBUG,
+)
 
 def prepare_folders(folders):
     if type(folders) is list:

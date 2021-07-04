@@ -5,7 +5,6 @@ from .pico_motor import PicoMotor
 from .i2c_helper import I2CHelper
 
 def main(args=None):
-    print('Motor Node start serve')
     rclpy.init(args=args)
     
     i2c = I2CHelper()
