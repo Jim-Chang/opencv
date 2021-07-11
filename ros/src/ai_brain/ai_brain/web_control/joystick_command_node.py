@@ -2,6 +2,7 @@ import json
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from jbot_msgs.msg import Motor as MotorMsg
 from std_msgs.msg import String
 
@@ -9,9 +10,9 @@ class WebJoystickCommandNode(Node):
     
     def __init__(self):
         super().__init__('web_joystick_cmd_node')
-        self._motor_ctrl_pub = self.create_publisher(MotorMsg, 'motor_ctrl', 10)
-        self._rec_ctrl_pub = self.create_publisher(String, 'data_collector_ctrl', 10)
-        self._auto_drive_ctrl_pub = self.create_publisher(String, 'auto_drive_ctrl', 10)
+        self._motor_ctrl_pub = self.create_publisher(MotorMsg, 'motor_ctrl', qos_profile_sensor_data)
+        self._rec_ctrl_pub = self.create_publisher(String, 'data_collector_ctrl', qos_profile_sensor_data)
+        self._auto_drive_ctrl_pub = self.create_publisher(String, 'auto_drive/ctrl', qos_profile_sensor_data)
         
     def pub_motor_cmd(self, speed, diff):
         msg = MotorMsg()

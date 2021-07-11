@@ -1,4 +1,5 @@
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 import numpy as np
 from PIL import Image
 from io import BytesIO
@@ -15,8 +16,8 @@ class ImageReceiveNode(Node):
         
         self.img_msg = None
         self.predict_motor_msg = None
-        self._img_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.img_cb, 10)
-        self._auto_drive_predict_sub = self.create_subscription(MotorMsg, 'auto_drive_predict', self.auto_drive_predict, 10)
+        self._img_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.img_cb, qos_profile_sensor_data)
+        self._auto_drive_predict_sub = self.create_subscription(MotorMsg, 'auto_drive/predict', self.auto_drive_predict, qos_profile_sensor_data)
 
     def img_cb(self, msg):
         self.img_msg = msg

@@ -1,4 +1,5 @@
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from ai_brain.utils import logging
 
 from jbot_msgs.msg import Motor as MotorMsg
@@ -12,7 +13,7 @@ class MotorControlNode(Node):
             MotorMsg,
             'motor_ctrl',
             self._sub_cb,
-            10)
+            qos_profile_sensor_data)
         self.motor = motor
         
         logging.info('Motor Control Node start')

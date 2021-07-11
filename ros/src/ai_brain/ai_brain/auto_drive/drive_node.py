@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 import numpy as np
 from PIL import Image
 import cv2
@@ -15,20 +16,19 @@ from .nvidia_model import SteeringPredictor
 
 class DriveNode(Node):
 
-    def __init__(self):
+    def __init__(self, motor):
         super().__init__('auto_drive__drive')
-        
+        self.motor = motor
         self.is_enable = False
+
+        self._img_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.img_cb, qos_profile_sensor_data)
+        self._auto_drive_ctrl_sub = self.create_subscription(String, 'auto_drive/ctrl', self.auto_drive_cb, qos_profile_sensor_data)
         
+        self._auto_drive_predict_pub = self.create_publisher(MotorMsg, 'auto_drive/predict', qos_profile_sensor_data)
+
         logging.info('init predictor...')
         self.predictor = SteeringPredictor('steering_ep_99.pth')
         logging.info('init predictor successfully!')
-
-        self._img_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.img_cb, 10)
-        self._auto_drive_ctrl_sub = self.create_subscription(String, 'auto_drive_ctrl', self.auto_drive_cb, 10)
-        
-        self._motor_ctrl_pub = self.create_publisher(MotorMsg, 'motor_ctrl', 10)
-        self._auto_drive_predict_pub = self.create_publisher(MotorMsg, 'auto_drive_predict', 10)
 
         logging.info('Drive Node Start')
 
@@ -37,12 +37,20 @@ class DriveNode(Node):
         self.is_enable = msg.data == 'true'
 
     def img_cb(self, msg):
-        np_img = im_msg_2_im_np(msg)
-        steering = self.predictor.predict(Image.fromarray(np_img))
-
-        self._pub_auto_drive_perdict(int(steering))
         if self.is_enable:
-            self._pub_motor_cmd(80, int(steering))
+
+            np_img = im_msg_2_im_np(msg)
+            steering = self.predictor.predict(Image.fromarray(np_img))
+            logging.info(steering)
+
+            self._pub_auto_drive_perdict(int(steering))
+            self.motor.go(75, int(steering))
+
+        else:
+            logging.info('not enable auto drive')
+
+    def stop_motor(self):
+        self.motor.stop()
 
     def _pub_motor_cmd(self, speed, diff):
         msg = MotorMsg()
@@ -57,15 +65,24 @@ class DriveNode(Node):
 
 
 def main(args=None):
+    from ai_brain.motor.pico_motor import PicoMotor
+    from ai_brain.motor.i2c_helper import I2CHelper
+
     rclpy.init(args=args)
 
-    node = DriveNode()
+    # prepare motor
+    i2c = I2CHelper()
+    motor = PicoMotor(i2c)
+    
+    # init drive node
+    node = DriveNode(motor)
 
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         logging.info('force stop...')
 
+    node.stop_motor()
     node.destroy_node()
     rclpy.shutdown()
 

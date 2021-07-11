@@ -16,6 +16,7 @@ def main(args=None):
     except KeyboardInterrupt:
         print('stop...')
     
+    motor.stop()
     motor_ctrl_node.destroy_node()
     rclpy.shutdown()
     
