@@ -1,0 +1,29 @@
+version: '2.3'
+x-base: &base
+  image: ros2_opencv_pytorch:workspace
+  network_mode: host
+  ipc: host
+  working_dir: /src
+  entrypoint: ''
+  devices:
+    - "/dev/i2c-0:/dev/i2c-0"
+    - "/dev/i2c-1:/dev/i2c-1"
+    - "/dev/video0:/dev/video0"
+  volumes:
+    - $PWD/../src:/src
+    - $HOME/Documents/ros_deep_learning:/ros_deep_learning
+    - /tmp/argus_socket:/tmp/argus_socket
+  
+services:
+  video_source:
+    <<: *base
+    container_name: video_source
+    command: 'bash -c "source \"/opt/ros/$${ROS_DISTRO}/setup.bash\" && source \"/ros_deep_learning/install/setup.sh\" && ros2 run ros_deep_learning video_source --ros-args -p resource:=\"csi://0\" -p width:=640 -p height:=360 -p framerate:=30."'
+
+  web_server:
+    <<: *base
+    depends_on:
+      - video_source
+    container_name: web_server
+    command: 'bash -c "source \"/opt/ros/$${ROS_DISTRO}/setup.bash\" && source \"/ros_deep_learning/install/setup.sh\" && source \"/src/install/setup.sh\" && ros2 run ai_brain web_server"'
+    

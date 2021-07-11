@@ -15,31 +15,13 @@ x-base: &base
     - /tmp/argus_socket:/tmp/argus_socket
   
 services:
-  video_source:
-    <<: *base
-    container_name: video_source
-    command: 'bash -c "source \"/opt/ros/$${ROS_DISTRO}/setup.bash\" && source \"/ros_deep_learning/install/setup.sh\" && ros2 run ros_deep_learning video_source --ros-args -p resource:=\"csi://0\" -p width:=1280 -p height:=720 -p framerate:=24."'
-
-  web_server:
-    <<: *base
-    depends_on:
-      - video_source
-    container_name: web_server
-    command: 'bash -c "source \"/opt/ros/$${ROS_DISTRO}/setup.bash\" && source \"/ros_deep_learning/install/setup.sh\" && source \"/src/install/setup.sh\" && ros2 run ai_brain web_server"'
-    
   motor:
     <<: *base
-    depends_on:
-      - video_source
-      - web_server
     container_name: motor
     command: 'bash -c "source \"/opt/ros/$${ROS_DISTRO}/setup.bash\" && source \"/ros_deep_learning/install/setup.sh\" && source \"/src/install/setup.sh\" && ros2 run ai_brain motor"'
 
   data_collect:
     <<: *base
-    depends_on:
-      - video_source
-      - web_server
     container_name: data_collect
     command: 'bash -c "source \"/opt/ros/$${ROS_DISTRO}/setup.bash\" && source \"/ros_deep_learning/install/setup.sh\" && source \"/src/install/setup.sh\" && ros2 run ai_brain data_collect"'
   
