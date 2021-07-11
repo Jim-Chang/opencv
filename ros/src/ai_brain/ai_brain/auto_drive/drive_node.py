@@ -12,6 +12,7 @@ from std_msgs.msg import String
 
 from ai_brain.utils import logging, im_msg_2_im_np, save_img_2_bytes
 from .nvidia_model import SteeringPredictor
+from .nvidia_model_2 import SteeringSpeedPredictor
 
 
 class DriveNode(Node):
@@ -27,7 +28,8 @@ class DriveNode(Node):
         self._auto_drive_predict_pub = self.create_publisher(MotorMsg, 'auto_drive/predict', qos_profile_sensor_data)
 
         logging.info('init predictor...')
-        self.predictor = SteeringPredictor('steering_ep_99.pth')
+        # self.predictor = SteeringPredictor('steering_ep_99.pth')
+        self.predictor = SteeringSpeedPredictor('steering_speed_ep_200.pth')
         logging.info('init predictor successfully!')
 
         logging.info('Drive Node Start')
@@ -40,11 +42,10 @@ class DriveNode(Node):
         if self.is_enable:
 
             np_img = im_msg_2_im_np(msg)
-            steering = self.predictor.predict(Image.fromarray(np_img))
-            logging.info(steering)
+            steering, speed = self._do_predict(Image.fromarray(np_img))
 
-            self._pub_auto_drive_perdict(int(steering))
-            self.motor.go(75, int(steering))
+            self._pub_auto_drive_perdict(int(speed), int(steering))
+            self.motor.go(int(speed), int(steering))
 
         else:
             logging.info('not enable auto drive')
@@ -58,10 +59,22 @@ class DriveNode(Node):
         msg.diff = diff
         self._motor_ctrl_pub.publish(msg)
 
-    def _pub_auto_drive_perdict(self, diff):
+    def _pub_auto_drive_perdict(self, speed, diff):
         msg = MotorMsg()
+        msg.speed = speed
         msg.diff = diff
         self._auto_drive_predict_pub.publish(msg)
+
+    def _do_predict(self, pil_img):
+        if isinstance(self.predictor, SteeringPredictor):
+            steering = self.predictor.predict(pil_img)
+            return steering, 75
+
+        elif isinstance(self.predictor, SteeringSpeedPredictor):
+            return self.predictor.predict(pil_img)
+
+        else:
+            raise Exception('Predictor is not support')
 
 
 def main(args=None):

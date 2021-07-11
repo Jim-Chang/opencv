@@ -35,6 +35,6 @@ class ImageReceiveNode(Node):
         img = im_msg_2_im_np(self.img_msg)
 
         if self.predict_motor_msg:
-            write_text_on_im(img, f'AI diff: {self.predict_motor_msg.diff}')
+            write_text_on_im(img, f'AI S: {self.predict_motor_msg.speed} D: {self.predict_motor_msg.diff}')
 
         return save_img_2_bytes(img, resize=0.5)
