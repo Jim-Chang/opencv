@@ -1,9 +1,11 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 import numpy as np
 from PIL import Image
 from uuid import uuid1
 
+from ai_brain.utils import logging
 from sensor_msgs.msg import Image as ImageMsg
 from jbot_msgs.msg import Motor as MotorMsg
 from std_msgs.msg import String
@@ -23,7 +25,7 @@ class DataCollectorNode(Node):
     def __init__(self):
         super().__init__('data_collector')
 
-        print('create folders')
+        logging.info('create folders')
         prepare_folders(self.im_folder_path)
 
         self.last_motor_speed = 0
@@ -32,13 +34,13 @@ class DataCollectorNode(Node):
 
         self.motor_im_map = load_motor_im_map(self.motor_im_map_fpath)
 
-        print('initial subscribe')
+        logging.info('initial subscribe')
         # Image subscriber from cam2image
-        self.im_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.im_cb, 10)
-        self.motor_ctrl_sub = self.create_subscription(MotorMsg, 'motor_ctrl', self.motor_ctrl_cb, 10)
-        self.collector_ctrl_sub = self.create_subscription(String, 'data_collector_ctrl', self.collector_ctrl_cb, 10)
+        self.im_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.im_cb, qos_profile_sensor_data)
+        self.motor_ctrl_sub = self.create_subscription(MotorMsg, 'motor_ctrl', self.motor_ctrl_cb, qos_profile_sensor_data)
+        self.collector_ctrl_sub = self.create_subscription(String, 'data_collector_ctrl', self.collector_ctrl_cb, qos_profile_sensor_data)
 
-        print('data collector init, wait ctrl cmd to start rec...')
+        logging.info('data collector init, wait ctrl cmd to start rec...')
 
     def im_cb(self, msg):
         if self.is_rec:
@@ -56,7 +58,7 @@ class DataCollectorNode(Node):
         self.last_motor_diff = msg.diff
 
     def collector_ctrl_cb(self, msg):
-        print(f'Receive collector ctrl: {msg.data}')
+        logging.info(f'Receive collector ctrl: {msg.data}')
         self.is_rec = msg.data == 'true'
 
 
@@ -68,7 +70,7 @@ def main(args=None):
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
-        print('force stop...')
+        logging.info('force stop...')
 
     node.destroy_node()
     rclpy.shutdown()

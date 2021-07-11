@@ -37,6 +37,7 @@ class DriveNode(Node):
     def auto_drive_cb(self, msg):
         logging.info(f'Receive auto drive ctrl: {msg.data}')
         self.is_enable = msg.data == 'true'
+        self.stop_motor()
 
     def img_cb(self, msg):
         if self.is_enable:
