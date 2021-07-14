@@ -21,10 +21,12 @@ class DriveNode(Node):
         super().__init__('auto_drive__drive')
         self.motor = motor
         self.is_enable = False
+        self.manual_ctrl = False
 
         self._img_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.img_cb, qos_profile_sensor_data)
         self._auto_drive_ctrl_sub = self.create_subscription(String, 'auto_drive/ctrl', self.auto_drive_cb, qos_profile_sensor_data)
-        
+        self._joystick_drive_ctrl_sub = self.create_subscription(MotorMsg, 'motor_ctrl', self.joystick_drive_cb, qos_profile_sensor_data)
+
         self._auto_drive_predict_pub = self.create_publisher(MotorMsg, 'auto_drive/predict', qos_profile_sensor_data)
 
         logging.info('init predictor...')
@@ -41,15 +43,21 @@ class DriveNode(Node):
 
     def img_cb(self, msg):
         if self.is_enable:
-
             np_img = im_msg_2_im_np(msg)
             steering, speed = self._do_predict(Image.fromarray(np_img))
 
             self._pub_auto_drive_perdict(int(speed), int(steering))
-            self.motor.go(int(speed), int(steering))
+            if not self.manual_ctrl:
+                self.motor.go(int(speed), int(steering))
 
         else:
             logging.info('not enable auto drive')
+
+    def joystick_drive_cb(self, msg):
+        logging.info(f'[Receive joystick ctrl] speed: {msg.speed}, diff: {msg.diff}')
+        self.motor.go(msg.speed, msg.diff)
+
+        self.manual_ctrl = not (msg.speed == 0 and msg.diff == 0)
 
     def stop_motor(self):
         self.motor.stop()
