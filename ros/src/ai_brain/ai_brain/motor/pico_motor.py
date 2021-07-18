@@ -1,6 +1,6 @@
 class PicoMotor:
     
-    _MIN_SPEED = 50
+    _MIN_SPEED = 60
     _MAX_SPEED = 100
     _MIN_DIFF = 10
     

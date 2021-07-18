@@ -5,7 +5,8 @@ import torch.nn as nn
 MODEL_FOLDER_PATH = 'ai_brain/ai_brain/auto_drive/models/'
 
 tf_compose = transforms.Compose([
-    transforms.Resize((200, 66)),
+    # transforms.Resize((200, 66)),
+    transforms.Resize((66, 200)),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])

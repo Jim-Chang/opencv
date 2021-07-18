@@ -30,8 +30,8 @@ class DriveNode(Node):
         self._auto_drive_predict_pub = self.create_publisher(MotorMsg, 'auto_drive/predict', qos_profile_sensor_data)
 
         logging.info('init predictor...')
-        # self.predictor = SteeringPredictor('steering_ep_99.pth')
-        self.predictor = SteeringSpeedPredictor('steering_speed_ep_200.pth')
+        # self.predictor = SteeringPredictor('0703.pth')
+        self.predictor = SteeringSpeedPredictor('0713_3.pth')
         logging.info('init predictor successfully!')
 
         logging.info('Drive Node Start')
