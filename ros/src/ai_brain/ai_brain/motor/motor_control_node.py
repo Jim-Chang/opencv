@@ -11,7 +11,7 @@ class MotorControlNode(Node):
         super().__init__('motor_control')
         self.subscription = self.create_subscription(
             MotorMsg,
-            'motor_ctrl',
+            'motor/ctrl',
             self._sub_cb,
             qos_profile_sensor_data)
         self.motor = motor

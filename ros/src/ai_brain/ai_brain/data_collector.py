@@ -37,8 +37,8 @@ class DataCollectorNode(Node):
         logging.info('initial subscribe')
         # Image subscriber from cam2image
         self.im_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.im_cb, qos_profile_sensor_data)
-        self.motor_ctrl_sub = self.create_subscription(MotorMsg, 'motor_ctrl', self.motor_ctrl_cb, qos_profile_sensor_data)
-        self.collector_ctrl_sub = self.create_subscription(String, 'data_collector_ctrl', self.collector_ctrl_cb, qos_profile_sensor_data)
+        self.motor_ctrl_sub = self.create_subscription(MotorMsg, 'motor/ctrl', self.motor_ctrl_cb, qos_profile_sensor_data)
+        self.collector_ctrl_sub = self.create_subscription(String, 'data_collector/ctrl', self.collector_ctrl_cb, qos_profile_sensor_data)
 
         logging.info('data collector init, wait ctrl cmd to start rec...')
 

@@ -25,7 +25,7 @@ class DriveNode(Node):
 
         self._img_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.img_cb, qos_profile_sensor_data)
         self._auto_drive_ctrl_sub = self.create_subscription(String, 'auto_drive/ctrl', self.auto_drive_cb, qos_profile_sensor_data)
-        self._joystick_drive_ctrl_sub = self.create_subscription(MotorMsg, 'motor_ctrl', self.joystick_drive_cb, qos_profile_sensor_data)
+        self._joystick_drive_ctrl_sub = self.create_subscription(MotorMsg, 'motor/ctrl', self.joystick_drive_cb, qos_profile_sensor_data)
 
         self._auto_drive_predict_pub = self.create_publisher(MotorMsg, 'auto_drive/predict', qos_profile_sensor_data)
 
