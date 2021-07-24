@@ -1,38 +1,31 @@
 class PicoMotor:
     
-    _MIN_SPEED = 60
+    _MIN_SPEED = 50       # 一般最低轉速
     _MAX_SPEED = 100
     _MIN_DIFF = 10
+    _MIN_DIFF_SPEED = 35  # 差速最低轉速
     
     def __init__(self, serial_port):
         self.serial_port = serial_port
-        
+
     def _send(self, left, right):
         cmd = f'MOTOR:left:{left}:right:{right}'.encode()
         self.serial_port.write(cmd)
-        
-    def _bounding_speed(self, speed):        
-        if abs(speed) < self._MIN_SPEED:
-            print(f'[PicoMotor]: Lowest speed is {self._MIN_SPEED}, reset value {speed} to it.')
-            return self._MIN_SPEED if speed >= 0 else -self._MIN_SPEED
-        
-        if abs(speed) > self._MAX_SPEED:
-            print(f'[PicoMotor]: Max speed is {self._MAX_SPEED}, reset value {speed} to it.')
-            return self._MAX_SPEED if speed >= 0 else -self._MAX_SPEED
-        
-        return speed
     
+    def _scale_speed(self, speed, min=_MIN_SPEED, max=_MAX_SPEED):
+        scale_value = int(abs(speed) / 100.0 * (max - min) + min)
+        return scale_value if speed >= 0 else -scale_value
+
     def _get_diff_speed(self, speed, diff):
-        if speed >= 0:
-            return speed - diff
-        
-        return speed + diff
+        value = abs(speed) - diff
+        value = value if value >= 0 else 0
+
+        return value if speed > 0 else -value
     
     def _is_need_change_to_rotate(self, speed, diff_speed):
-#         return abs(speed) == self._MIN_SPEED or (abs(speed) - abs(diff_speed)) < self._MIN_DIFF
         return (
             speed == diff_speed or
-            ((abs(speed) - abs(diff_speed)) < self._MIN_DIFF and abs(diff_speed) == self._MIN_SPEED)
+            ((abs(speed) - abs(diff_speed)) < self._MIN_DIFF and abs(diff_speed) == self._MIN_DIFF_SPEED)
         )
     
     def go(self, speed, diff):
@@ -61,7 +54,7 @@ class PicoMotor:
             - : backward
         '''
         print(f'[PicoMotor]: go_straight, speed={speed}')
-        speed = self._bounding_speed(speed)
+        speed = self._scale_speed(speed)
         print(f'[PicoMotor]: final => speed={speed}')
         self._send(speed, speed)
         
@@ -79,8 +72,8 @@ class PicoMotor:
         if speed == 0:
             return
         
-        speed = self._bounding_speed(speed)
-        diff_speed = self._bounding_speed(self._get_diff_speed(speed, abs(diff)))
+        speed = self._scale_speed(speed)
+        diff_speed = self._scale_speed(self._get_diff_speed(speed, abs(diff)), min=self._MIN_DIFF_SPEED)
         print(f'[PicoMotor]: final => speed={speed}, diff_speed={diff_speed}')
         
         if self._is_need_change_to_rotate(speed, diff_speed):
