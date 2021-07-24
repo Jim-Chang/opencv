@@ -12,11 +12,11 @@ export class DirectionService {
   private autoDriveApi = '/api/auto_drive';
 
   private worker: Worker;
-  private SPEED_MIN = 50;
+  private SPEED_MIN = 0;
   private SPEED_MAX = 100;
   private SPEED_STEP = 5;
   private STEER_MIN = 0;
-  private STEER_MAX = 50;
+  private STEER_MAX = 100;
   private STEER_STEP = 5;
 
   lastDirection: Direction = {
