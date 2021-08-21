@@ -1,3 +1,7 @@
+# value
+LED_FLASHING_DELAY_MS = 15
+I2C_LOOP_DELAY_MS = 50
+
 # onboard led
 ONBOARD_LED_PIN = 25
 
@@ -24,3 +28,7 @@ I2C_SL_CH = 0
 I2C_SL_SDA_PIN = 4
 I2C_SL_SCL_PIN = 5
 I2C_SL_ADDR = 0x50
+
+# Ultrasonic Sensor
+U_SENSOR_TRIG_PIN = 0
+U_SENSOR_ECHO_PIN = 1
