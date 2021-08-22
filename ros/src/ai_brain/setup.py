@@ -28,6 +28,7 @@ setup(
              'web_server = ai_brain.web_control.serve:main',
              'motor = ai_brain.motor.serve:main',
              'auto_drive = ai_brain.auto_drive.drive_node:main',
+             'sensor = ai_brain.sensor.serve:main',
         ],
     },
 )

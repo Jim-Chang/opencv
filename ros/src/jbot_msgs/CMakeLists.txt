@@ -36,6 +36,7 @@ find_package(rosidl_default_generators REQUIRED)
 # Add file paths if add new msg or srv
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Motor.msg"
+  "msg/Distance.msg"
  )
 
 ament_package()
