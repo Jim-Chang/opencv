@@ -2,7 +2,7 @@ import rclpy
 
 from .motor_control_node import MotorControlNode
 from .pico_motor import PicoMotor
-from .i2c_helper import I2CHelper
+from ai_brain.i2c_helper import I2CHelper
 
 def main(args=None):
     rclpy.init(args=args)

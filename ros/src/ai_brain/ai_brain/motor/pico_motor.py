@@ -9,7 +9,7 @@ class PicoMotor:
         self.serial_port = serial_port
 
     def _send(self, left, right):
-        cmd = f'MOTOR:left:{left}:right:{right}'.encode()
+        cmd = f'MOTOR:left:{left}:right:{right}'
         self.serial_port.write(cmd)
     
     def _scale_speed(self, speed, min=_MIN_SPEED, max=_MAX_SPEED):

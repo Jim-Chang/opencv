@@ -31,7 +31,7 @@ class DriveNode(Node):
 
         logging.info('init predictor...')
         # self.predictor = SteeringPredictor('0703.pth')
-        self.predictor = SteeringSpeedPredictor('0713_3.pth')
+        self.predictor = SteeringSpeedPredictor('0713_4.pth')
         logging.info('init predictor successfully!')
 
         logging.info('Drive Node Start')
@@ -88,7 +88,7 @@ class DriveNode(Node):
 
 def main(args=None):
     from ai_brain.motor.pico_motor import PicoMotor
-    from ai_brain.motor.i2c_helper import I2CHelper
+    from ai_brain.i2c_helper import I2CHelper
 
     rclpy.init(args=args)
 
