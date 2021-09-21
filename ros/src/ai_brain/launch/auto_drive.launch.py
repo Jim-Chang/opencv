@@ -21,6 +21,11 @@ def generate_launch_description():
         ),
         Node(
             package='ai_brain',
+            node_executable='sensor',
+            name='sensor_node'
+        ),
+        Node(
+            package='ai_brain',
             node_executable='auto_drive',
             name='auto_drive_node'
         ),

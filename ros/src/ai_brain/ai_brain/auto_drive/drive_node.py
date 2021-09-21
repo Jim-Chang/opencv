@@ -7,7 +7,7 @@ import cv2
 from io import BytesIO
 
 from sensor_msgs.msg import Image as ImageMsg
-from jbot_msgs.msg import Motor as MotorMsg
+from jbot_msgs.msg import Motor as MotorMsg, Distance as DistanceMsg
 from std_msgs.msg import String
 
 from ai_brain.utils import logging, im_msg_2_im_np, save_img_2_bytes
@@ -20,12 +20,18 @@ class DriveNode(Node):
     def __init__(self, motor):
         super().__init__('auto_drive__drive')
         self.motor = motor
+
         self.is_enable = False
         self.manual_ctrl = False
+        self.interfer_with_sensor = False
+
+        self.img = None
+        self.front_distance = 1000
 
         self._img_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.img_cb, qos_profile_sensor_data)
         self._auto_drive_ctrl_sub = self.create_subscription(String, 'auto_drive/ctrl', self.auto_drive_cb, qos_profile_sensor_data)
         self._joystick_drive_ctrl_sub = self.create_subscription(MotorMsg, 'motor/ctrl', self.joystick_drive_cb, qos_profile_sensor_data)
+        self._distance_sub = self.create_subscription(MotorMsg, 'sensor/distance', self.distance_cb, qos_profile_sensor_data)
 
         self._auto_drive_predict_pub = self.create_publisher(MotorMsg, 'auto_drive/predict', qos_profile_sensor_data)
 
@@ -43,12 +49,8 @@ class DriveNode(Node):
 
     def img_cb(self, msg):
         if self.is_enable:
-            np_img = im_msg_2_im_np(msg)
-            steering, speed = self._do_predict(Image.fromarray(np_img))
-
-            self._pub_auto_drive_perdict(int(speed), int(steering))
-            if not self.manual_ctrl:
-                self.motor.go(int(speed), int(steering))
+            self.img = Image.fromarray(im_msg_2_im_np(msg))
+            self._do_driving()
 
         else:
             logging.info('not enable auto drive')
@@ -59,20 +61,41 @@ class DriveNode(Node):
 
         self.manual_ctrl = not (msg.speed == 0 and msg.diff == 0)
 
+    def distance_cb(self, msg):
+        self.front_distance = msg.front
+
     def stop_motor(self):
         self.motor.stop()
-
-    def _pub_motor_cmd(self, speed, diff):
-        msg = MotorMsg()
-        msg.speed = speed
-        msg.diff = diff
-        self._motor_ctrl_pub.publish(msg)
 
     def _pub_auto_drive_perdict(self, speed, diff):
         msg = MotorMsg()
         msg.speed = speed
         msg.diff = diff
         self._auto_drive_predict_pub.publish(msg)
+
+    def _do_driving(self):
+        steering, speed = self._do_predict(self.img)
+
+        # pub predict first
+        self._pub_auto_drive_perdict(int(speed), int(steering))
+
+        # if user has sent control msg then override auto drive
+        if not self.manual_ctrl:
+            if speed > 0 and self.front_distance < 100:
+                self.interfer_with_sensor = True
+
+            if self.interfer_with_sensor and self.front_distance > 200:
+                self.interfer_with_sensor = False
+
+            if self.interfer_with_sensor:
+                if steering == 0:
+                    steering = 50
+                else:
+                    steering += 50 * (steering / abs(steering))
+
+                logging.info(f'Interfer with sensor, front distance = {self.front_distance}, steering = {steering}')
+
+            self.motor.go(int(speed), int(steering))
 
     def _do_predict(self, pil_img):
         if isinstance(self.predictor, SteeringPredictor):
