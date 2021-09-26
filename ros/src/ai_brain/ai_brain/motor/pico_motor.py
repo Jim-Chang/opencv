@@ -53,9 +53,9 @@ class PicoMotor:
             + : forward
             - : backward
         '''
-        print(f'[PicoMotor]: go_straight, speed={speed}')
+        # print(f'[PicoMotor]: go_straight, speed={speed}')
         speed = self._scale_speed(speed)
-        print(f'[PicoMotor]: final => speed={speed}')
+        # print(f'[PicoMotor]: final => speed={speed}')
         self._send(speed, speed)
         
     def go_turn(self, speed, diff):
@@ -68,20 +68,20 @@ class PicoMotor:
             + : right
             - : left
         '''
-        print(f'[PicoMotor]: go_turn, speed={speed}, diff={diff}')
+        # print(f'[PicoMotor]: go_turn, speed={speed}, diff={diff}')
         if speed == 0:
             return
         
         speed = self._scale_speed(speed)
         diff_speed = self._scale_speed(self._get_diff_speed(speed, abs(diff)), min=self._MIN_DIFF_SPEED)
-        print(f'[PicoMotor]: final => speed={speed}, diff_speed={diff_speed}')
+        # print(f'[PicoMotor]: final => speed={speed}, diff_speed={diff_speed}')
         
         if self._is_need_change_to_rotate(speed, diff_speed):
             if (speed > 0 and diff >= 0) or (speed < 0 and diff < 0):
-                print('[PicoMotor]: change to right_rotate')
+                # print('[PicoMotor]: change to right_rotate')
                 self.right_rotate()
             else:
-                print('[PicoMotor]: change to left_rotate')
+                # print('[PicoMotor]: change to left_rotate')
                 self.left_rotate()
         else:    
             if diff >= 0:
@@ -98,7 +98,7 @@ class PicoMotor:
         diff:
             always +
         '''
-        print(f'[PicoMotor]: turn_left, speed={speed}, diff={diff}')
+        # print(f'[PicoMotor]: turn_left, speed={speed}, diff={diff}')
         return self.go_turn(speed, -diff)
 
     def turn_right(self, speed, diff):
@@ -110,21 +110,21 @@ class PicoMotor:
         diff:
             always +
         '''
-        print(f'[PicoMotor]: turn_tight, speed={speed}, diff={diff}')
+        # print(f'[PicoMotor]: turn_tight, speed={speed}, diff={diff}')
         return self.go_turn(speed, diff)
 
     def left_rotate(self):
         '''
         原地向左旋轉
         '''
-        print(f'[PicoMotor]: left_rotate')
+        # print(f'[PicoMotor]: left_rotate')
         self._send(-self._MIN_SPEED, self._MIN_SPEED)
         
     def right_rotate(self):
         '''
         原地向右旋轉
         '''
-        print(f'[PicoMotor]: right_rotate')     
+        # print(f'[PicoMotor]: right_rotate')     
         self._send(self._MIN_SPEED, -self._MIN_SPEED)
         
     def stop(self):
