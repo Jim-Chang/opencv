@@ -22,8 +22,11 @@ class DriveNode(Node):
         self.motor = motor
 
         self.is_enable = False
+        self.has_print_not_enable_msg = False
         self.manual_ctrl = False
+
         self.interfer_with_sensor = False
+        self.last_interfer_steering = 0
 
         self.img = None
         self.front_distance = 1000
@@ -31,7 +34,7 @@ class DriveNode(Node):
         self._img_sub = self.create_subscription(ImageMsg, 'video_source/raw', self.img_cb, qos_profile_sensor_data)
         self._auto_drive_ctrl_sub = self.create_subscription(String, 'auto_drive/ctrl', self.auto_drive_cb, qos_profile_sensor_data)
         self._joystick_drive_ctrl_sub = self.create_subscription(MotorMsg, 'motor/ctrl', self.joystick_drive_cb, qos_profile_sensor_data)
-        self._distance_sub = self.create_subscription(MotorMsg, 'sensor/distance', self.distance_cb, qos_profile_sensor_data)
+        self._distance_sub = self.create_subscription(DistanceMsg, 'sensor/distance', self.distance_cb, qos_profile_sensor_data)
 
         self._auto_drive_predict_pub = self.create_publisher(MotorMsg, 'auto_drive/predict', qos_profile_sensor_data)
 
@@ -45,6 +48,7 @@ class DriveNode(Node):
     def auto_drive_cb(self, msg):
         logging.info(f'Receive auto drive ctrl: {msg.data}')
         self.is_enable = msg.data == 'true'
+        self.has_print_not_enable_msg = False
         self.stop_motor()
 
     def img_cb(self, msg):
@@ -53,7 +57,9 @@ class DriveNode(Node):
             self._do_driving()
 
         else:
-            logging.info('not enable auto drive')
+            if not self.has_print_not_enable_msg:
+                self.has_print_not_enable_msg = True
+                logging.info('not enable auto drive')
 
     def joystick_drive_cb(self, msg):
         logging.info(f'[Receive joystick ctrl] speed: {msg.speed}, diff: {msg.diff}')
@@ -81,19 +87,23 @@ class DriveNode(Node):
 
         # if user has sent control msg then override auto drive
         if not self.manual_ctrl:
-            if speed > 0 and self.front_distance < 100:
+            if speed > 0 and self.front_distance < 400:
+                logging.info(f'Distance is too small {self.front_distance}, start interfer.')
                 self.interfer_with_sensor = True
 
-            if self.interfer_with_sensor and self.front_distance > 200:
+            if self.interfer_with_sensor and self.front_distance > 800:
+                logging.info(f'Distance is ok {self.front_distance}, stop interfer.')
                 self.interfer_with_sensor = False
+                self.last_interfer_steering = 0
 
             if self.interfer_with_sensor:
-                if steering == 0:
-                    steering = 50
-                else:
-                    steering += 50 * (steering / abs(steering))
+                steering = 80
+                # 距離 > 15 cm 用前進右轉，反之倒退左轉。一但倒退就要保持為倒退
+                speed = 90 if self.front_distance > 150 and self.last_interfer_steering >= 0 else -90
 
-                logging.info(f'Interfer with sensor, front distance = {self.front_distance}, steering = {steering}')
+                self.last_interfer_steering = speed
+
+                logging.info(f'Interfer with sensor, speed = {speed}, steering = {steering}')
 
             self.motor.go(int(speed), int(steering))
 
@@ -103,7 +113,12 @@ class DriveNode(Node):
             return steering, 75
 
         elif isinstance(self.predictor, SteeringSpeedPredictor):
-            return self.predictor.predict(pil_img)
+            # return self.predictor.predict(pil_img)
+            # 暫時把所有速度都改為正值
+            steering, speed = self.predictor.predict(pil_img)
+            # 發現有時 speed 預測會大於 100，這邊做個阻擋
+            speed = speed if speed <= 100 else 100
+            return steering, abs(speed)
 
         else:
             raise Exception('Predictor is not support')
